@@ -44,6 +44,15 @@ $routes = [
     'POST /api/school/quiz/answer'        => [SchoolQuizController::class, 'apiAnswer'],
     'POST /api/school/quiz/submit'        => [SchoolQuizController::class, 'apiSubmit'],
 
+    // ===== Panelist :: Results =====
+    'GET /panelist/results'                       => [PanelistResultsController::class, 'index'],
+    'GET /panelist/results/final'                 => [PanelistResultsController::class, 'finalView'],
+    'GET /panelist/results/round/{id}'            => [PanelistResultsController::class, 'showRound'],
+    'GET /panelist/results/round/{id}/qualify'    => [PanelistResultsController::class, 'qualifyForm'],
+    'POST /panelist/results/round/{id}/qualify'   => [PanelistResultsController::class, 'qualifySave'],
+    'POST /panelist/results/round/{id}/publish'   => [PanelistResultsController::class, 'publish'],
+    'POST /panelist/results/round/{id}/unpublish' => [PanelistResultsController::class, 'unpublish'],
+
     // ===== Panelist :: Slot Builder (drag & drop) =====
     'GET /panelist/slots'                          => [PanelistSlotsController::class, 'index'],
     'GET /panelist/slots/{id}'                     => [PanelistSlotsController::class, 'build'],

@@ -186,6 +186,7 @@ function nav_for_role(string $role): array
             ['label' => 'Review Queue', 'url' => '/panelist/review'],
             ['label' => 'Master Bank',  'url' => '/panelist/master'],
             ['label' => 'Slot Builder', 'url' => '/panelist/slots'],
+            ['label' => 'Results',      'url' => '/panelist/results'],
         ],
         Auth::ROLE_SCHOOL => [
             ['label' => 'Dashboard', 'url' => '/school/dashboard'],
