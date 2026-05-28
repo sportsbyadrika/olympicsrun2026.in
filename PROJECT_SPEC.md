@@ -126,18 +126,23 @@ qualifies from Round 1.
         v                            v                            v
 ```
 
-### 3.1 Question collection
-- Panelists submit MCQ questions tagged by `sport`, `category`, `difficulty`.
-- Submissions land in the bank with status `pending`.
-- A panelist can edit / withdraw a question only while it is `pending`.
+### 3.1 Question authoring
+- **Association Users** author MCQ questions in their association's bank,
+  tagged by `sport`, `category`, `difficulty`. New questions start as
+  `draft` and are freely editable by the author.
+- (Alternative path) Expert Panelists may also submit questions directly;
+  these go straight to `pending` for admin curation.
 
-### 3.2 Curation
-- Admin and Association Users see the pending queue.
-- For each question they can: `approve`, `reject` (with reason),
-  `needs_revision` (sent back to panelist).
-- Approved questions enter the **active pool**, taggable by round.
-- Admin builds Round 1 and Round 2 sets by drag-and-drop from the active pool
-  into a round slot. Order within a set is also drag-and-drop.
+### 3.2 Review & curation
+- Association Users select drafts and **Submit to Expert Panel**, moving
+  them to status `pending`.
+- **Expert Panelists** see the pending queue for their association and
+  may `approve`, `reject` (with reason), or return `needs_revision`.
+- Questions in `needs_revision` become editable to the author again; on
+  re-submit they return to `pending`.
+- Admin curates approved questions into the **master pool**, taggable by
+  round, and builds Round 1 and Round 2 sets by drag-and-drop (SortableJS).
+  Order within a set is also drag-and-drop.
 
 ### 3.3 Two-round quiz
 - **Round 1 (Qualifier):** Open to all approved schools. Auto-scored. The top

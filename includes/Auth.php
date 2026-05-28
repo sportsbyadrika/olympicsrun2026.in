@@ -117,6 +117,13 @@ final class Auth
         return isset($_SESSION['auth']['id']) ? (int)$_SESSION['auth']['id'] : null;
     }
 
+    public static function associationId(): ?int
+    {
+        return isset($_SESSION['auth']['association_id'])
+            ? (int)$_SESSION['auth']['association_id']
+            : null;
+    }
+
     public static function requireLogin(): void
     {
         if (!self::check()) {
