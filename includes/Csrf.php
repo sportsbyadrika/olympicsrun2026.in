@@ -30,4 +30,18 @@ final class Csrf
             exit('CSRF token mismatch.');
         }
     }
+
+    /** Accept token from either POST body or X-CSRF-Token header. */
+    public static function requireValidRequest(): void
+    {
+        $token = $_POST['_csrf']
+            ?? $_SERVER['HTTP_X_CSRF_TOKEN']
+            ?? null;
+        if (!self::check($token)) {
+            http_response_code(419);
+            header('Content-Type: application/json');
+            echo json_encode(['ok' => false, 'error' => 'CSRF token mismatch']);
+            exit;
+        }
+    }
 }

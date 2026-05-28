@@ -325,6 +325,7 @@ CREATE TABLE association_question_bank (
                                   'needs_revision')
                                        NOT NULL DEFAULT 'draft',
     reviewed_by_user_id      INT UNSIGNED  NULL,
+    reviewed_by_panelist_id  INT UNSIGNED  NULL,
     reviewed_at              DATETIME      NULL,
     reject_reason            TEXT          NULL,
     submitted_at             DATETIME      NULL,
@@ -337,6 +338,7 @@ CREATE TABLE association_question_bank (
     KEY idx_qb_assoc (association_id),
     KEY idx_qb_panelist (submitted_by_panelist_id),
     KEY idx_qb_created_by_au (created_by_assoc_user_id),
+    KEY idx_qb_reviewer_pn (reviewed_by_panelist_id),
     KEY idx_qb_status (status),
     KEY idx_qb_difficulty (difficulty),
     KEY idx_qb_sport (sport),
@@ -355,6 +357,10 @@ CREATE TABLE association_question_bank (
     CONSTRAINT fk_qb_reviewer
         FOREIGN KEY (reviewed_by_user_id)
             REFERENCES association_users(association_user_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_qb_reviewer_pn
+        FOREIGN KEY (reviewed_by_panelist_id)
+            REFERENCES expert_panelists(panelist_id)
         ON DELETE SET NULL
     -- fk_qb_master added after master_questions exists (see ALTER below)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -380,6 +386,7 @@ CREATE TABLE master_questions (
     intended_round       TINYINT UNSIGNED NULL,
     status               ENUM('active','retired') NOT NULL DEFAULT 'active',
     added_by_admin_id    INT UNSIGNED  NULL,
+    added_by_panelist_id INT UNSIGNED  NULL,
     created_at           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at           DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                 ON UPDATE CURRENT_TIMESTAMP,
@@ -389,6 +396,7 @@ CREATE TABLE master_questions (
     KEY idx_mq_status (status),
     KEY idx_mq_difficulty (difficulty),
     KEY idx_mq_sport (sport),
+    KEY idx_mq_panelist (added_by_panelist_id),
     CONSTRAINT fk_mq_source
         FOREIGN KEY (source_question_id)
             REFERENCES association_question_bank(question_id)
@@ -398,6 +406,9 @@ CREATE TABLE master_questions (
         ON DELETE CASCADE,
     CONSTRAINT fk_mq_admin
         FOREIGN KEY (added_by_admin_id) REFERENCES admins(admin_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_mq_panelist
+        FOREIGN KEY (added_by_panelist_id) REFERENCES expert_panelists(panelist_id)
         ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
