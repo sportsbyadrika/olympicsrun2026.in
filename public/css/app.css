@@ -1,0 +1,136 @@
+/* ============================================================================
+   Olympics Run 2026 — corporate palette + Bootstrap 5 overrides
+   ----------------------------------------------------------------------------
+   Navy  #1A2B49  primary
+   Teal  #00897B  accent
+   Grey  #F5F7FA  panels
+   White #FFFFFF  page background
+============================================================================ */
+
+:root {
+    --or-navy:        #1A2B49;
+    --or-navy-700:    #14223A;
+    --or-navy-300:    #4A5A75;
+    --or-teal:        #00897B;
+    --or-teal-700:    #006B61;
+    --or-teal-300:    #4DB6A6;
+    --or-panel:       #F5F7FA;
+    --or-panel-dark:  #E6EAF1;
+    --or-bg:          #FFFFFF;
+    --or-text:        #1F2937;
+    --or-muted:       #6B7280;
+}
+
+/* ---- Bootstrap variable overrides ---- */
+:root,
+[data-bs-theme="light"] {
+    --bs-primary:        var(--or-navy);
+    --bs-primary-rgb:    26, 43, 73;
+    --bs-link-color:     var(--or-teal);
+    --bs-link-color-rgb: 0, 137, 123;
+    --bs-link-hover-color: var(--or-teal-700);
+    --bs-body-bg:        var(--or-bg);
+    --bs-body-color:     var(--or-text);
+}
+
+/* ---- Page chrome ---- */
+body.bg-app          { background-color: var(--or-bg); color: var(--or-text); }
+.bg-navy             { background-color: var(--or-navy) !important; }
+.bg-panel            { background-color: var(--or-panel) !important; }
+.text-navy           { color: var(--or-navy) !important; }
+.text-accent         { color: var(--or-teal) !important; }
+.link-accent         { color: var(--or-teal); text-decoration: none; }
+.link-accent:hover   { color: var(--or-teal-700); text-decoration: underline; }
+
+/* Panels: cards that should sit on the light-grey fill */
+.card.panel {
+    background-color: var(--or-panel);
+    border-radius: 0.75rem;
+}
+
+/* ---- Navbar ---- */
+.navbar.bg-navy {
+    --bs-navbar-color:        rgba(255, 255, 255, 0.78);
+    --bs-navbar-hover-color:  #fff;
+    --bs-navbar-active-color: #fff;
+    --bs-navbar-brand-color:  #fff;
+    --bs-navbar-brand-hover-color: #fff;
+    --bs-navbar-toggler-border-color: rgba(255, 255, 255, 0.25);
+}
+.navbar.bg-navy .nav-link.active {
+    color: #fff;
+    border-bottom: 2px solid var(--or-teal);
+}
+.navbar.bg-navy .dropdown-menu {
+    border: 0;
+}
+.navbar .brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--or-teal);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+.brand-mark-lg {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    font-size: 1.25rem;
+}
+
+/* ---- Buttons ---- */
+.btn-primary {
+    --bs-btn-bg: var(--or-navy);
+    --bs-btn-border-color: var(--or-navy);
+    --bs-btn-hover-bg: var(--or-navy-700);
+    --bs-btn-hover-border-color: var(--or-navy-700);
+    --bs-btn-active-bg: var(--or-navy-700);
+    --bs-btn-active-border-color: var(--or-navy-700);
+    --bs-btn-disabled-bg: var(--or-navy-300);
+    --bs-btn-disabled-border-color: var(--or-navy-300);
+}
+.btn-accent {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--or-teal);
+    --bs-btn-border-color: var(--or-teal);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--or-teal-700);
+    --bs-btn-hover-border-color: var(--or-teal-700);
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: var(--or-teal-700);
+    --bs-btn-active-border-color: var(--or-teal-700);
+}
+.btn-outline-navy {
+    --bs-btn-color: var(--or-navy);
+    --bs-btn-border-color: var(--or-navy);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: var(--or-navy);
+    --bs-btn-hover-border-color: var(--or-navy);
+}
+
+/* ---- Forms ---- */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--or-teal-300);
+    box-shadow: 0 0 0 0.2rem rgba(0, 137, 123, 0.18);
+}
+
+/* ---- Footer ---- */
+.footer.bg-navy { background-color: var(--or-navy) !important; }
+
+/* ---- Tiny mobile-first tweaks ---- */
+@media (max-width: 575.98px) {
+    h1.h3   { font-size: 1.25rem; }
+    .display-6 { font-size: 1.75rem; }
+}
+
+/* ---- Print ---- */
+@media print {
+    .navbar, .footer, .no-print { display: none !important; }
+    body.bg-app { background: #fff; }
+    .card.panel { background: #fff; border: 1px solid #ddd; }
+}
