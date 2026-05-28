@@ -6,6 +6,16 @@
  * to the handler.
  */
 
+// Under the PHP built-in dev server, let real files in public/ be served
+// directly — same effect as the Apache .htaccess rule that skips existing
+// files. (No-op in production where Apache/Nginx does this for us.)
+if (PHP_SAPI === 'cli-server') {
+    $__path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    if ($__path !== '/' && is_file(__DIR__ . $__path)) {
+        return false;
+    }
+}
+
 require __DIR__ . '/../includes/bootstrap.php';
 
 $reqPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
@@ -43,6 +53,10 @@ $routes = [
     'GET /api/school/quiz/state'          => [SchoolQuizController::class, 'apiState'],
     'POST /api/school/quiz/answer'        => [SchoolQuizController::class, 'apiAnswer'],
     'POST /api/school/quiz/submit'        => [SchoolQuizController::class, 'apiSubmit'],
+
+    // ===== Reports (printable HTML, opens in a new tab) =====
+    'GET /reports/print/round/{id}'        => [ReportsController::class, 'round'],
+    'GET /reports/print/final/{id}'        => [ReportsController::class, 'finalReport'],
 
     // ===== Panelist :: Results =====
     'GET /panelist/results'                       => [PanelistResultsController::class, 'index'],

@@ -12,7 +12,11 @@ $isR1 = (int)$round['round_number'] === 1;
         </h1>
         <p class="text-muted small mb-0">Leaderboard · <?= count($results) ?> submission(s)</p>
     </div>
-    <div class="d-flex gap-2 mt-2 mt-md-0">
+    <div class="d-flex gap-2 mt-2 mt-md-0 flex-wrap">
+        <a href="/reports/print/round/<?= (int)$round['round_id'] ?>" target="_blank"
+           class="btn btn-outline-navy" rel="noopener">
+            <i class="bi bi-printer me-1"></i> Print report
+        </a>
         <?php if ($isR1): ?>
             <a href="/panelist/results/round/<?= (int)$round['round_id'] ?>/qualify"
                class="btn btn-accent text-white">

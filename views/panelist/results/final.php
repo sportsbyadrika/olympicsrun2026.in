@@ -14,9 +14,15 @@ foreach ($rounds as $r) {
             Combined Round 1 + Round 2 score, ranked by total.
         </p>
     </div>
-    <a href="/panelist/results" class="btn btn-outline-secondary mt-2 mt-md-0">
-        <i class="bi bi-arrow-left me-1"></i> Results overview
-    </a>
+    <div class="d-flex gap-2 mt-2 mt-md-0 flex-wrap">
+        <a href="/reports/print/final/<?= (int)Auth::associationId() ?>" target="_blank"
+           class="btn btn-outline-navy" rel="noopener">
+            <i class="bi bi-printer me-1"></i> Print report
+        </a>
+        <a href="/panelist/results" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
+        </a>
+    </div>
 </div>
 
 <?php if (empty($rows)): ?>

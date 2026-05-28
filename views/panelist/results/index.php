@@ -1,9 +1,15 @@
 <?php /** @var array $rounds */ ?>
 <div class="d-md-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 text-navy mb-2 mb-md-0">Results</h1>
-    <a href="/panelist/results/final" class="btn btn-accent text-white">
-        <i class="bi bi-trophy me-1"></i> Final consolidated
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="/reports/print/final/<?= (int)Auth::associationId() ?>" target="_blank"
+           class="btn btn-outline-navy" rel="noopener">
+            <i class="bi bi-printer me-1"></i> Print final
+        </a>
+        <a href="/panelist/results/final" class="btn btn-accent text-white">
+            <i class="bi bi-trophy me-1"></i> Final consolidated
+        </a>
+    </div>
 </div>
 
 <?php if (empty($rounds)): ?>
@@ -74,6 +80,10 @@
                             <a href="/panelist/results/round/<?= (int)$r['round_id'] ?>"
                                class="btn btn-sm btn-outline-navy">
                                 <i class="bi bi-list-ol me-1"></i> Leaderboard
+                            </a>
+                            <a href="/reports/print/round/<?= (int)$r['round_id'] ?>" target="_blank"
+                               class="btn btn-sm btn-outline-navy" rel="noopener">
+                                <i class="bi bi-printer me-1"></i> Print
                             </a>
                             <?php if ($isR1 && $submitted > 0): ?>
                                 <a href="/panelist/results/round/<?= (int)$r['round_id'] ?>/qualify"
