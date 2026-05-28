@@ -48,6 +48,18 @@ if (is_file($__vendor)) {
 // Helpers (functions, can't be autoloaded)
 require_once __DIR__ . '/helpers.php';
 
+// Security response headers — applied to every HTTP response (no-op in CLI).
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    if (($cfg['app']['env'] ?? 'local') === 'production'
+        && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 // Session ------------------------------------------------------------------
 // Skipped in CLI: cron scripts (e.g. force-submit-expired) have no user
 // session and writing a session cookie under SAPI=cli is noisy and pointless.
