@@ -124,6 +124,13 @@ final class Auth
             : null;
     }
 
+    public static function schoolId(): ?int
+    {
+        return isset($_SESSION['auth']['school_id'])
+            ? (int)$_SESSION['auth']['school_id']
+            : null;
+    }
+
     public static function requireLogin(): void
     {
         if (!self::check()) {

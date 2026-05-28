@@ -42,7 +42,9 @@ spl_autoload_register(function (string $class): void {
 require_once __DIR__ . '/helpers.php';
 
 // Session ------------------------------------------------------------------
-if (session_status() === PHP_SESSION_NONE) {
+// Skipped in CLI: cron scripts (e.g. force-submit-expired) have no user
+// session and writing a session cookie under SAPI=cli is noisy and pointless.
+if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
     session_name($cfg['session']['name']);
     session_set_cookie_params([
         'lifetime' => $cfg['session']['lifetime'],
