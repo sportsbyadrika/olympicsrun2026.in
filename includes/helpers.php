@@ -175,6 +175,7 @@ function nav_for_role(string $role): array
         ],
         Auth::ROLE_ASSOCIATION => [
             ['label' => 'Dashboard', 'url' => '/association/dashboard'],
+            ['label' => 'Questions', 'url' => '/association/questions'],
             ['label' => 'Schools',   'url' => '/association/schools'],
             ['label' => 'Slots',     'url' => '/association/slots'],
             ['label' => 'Results',   'url' => '/association/results'],

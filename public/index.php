@@ -29,6 +29,15 @@ $routes = [
     'GET /panelist/dashboard'    => [PanelistController::class, 'dashboard'],
     'GET /school/dashboard'      => [SchoolController::class, 'dashboard'],
 
+    // ===== Association :: Questions =====
+    'GET /association/questions'              => [AssociationQuestionsController::class, 'index'],
+    'GET /association/questions/new'          => [AssociationQuestionsController::class, 'create'],
+    'POST /association/questions'             => [AssociationQuestionsController::class, 'store'],
+    'POST /association/questions/submit'      => [AssociationQuestionsController::class, 'submitBulk'],
+    'GET /association/questions/{id}/edit'    => [AssociationQuestionsController::class, 'edit'],
+    'POST /association/questions/{id}'        => [AssociationQuestionsController::class, 'update'],
+    'POST /association/questions/{id}/delete' => [AssociationQuestionsController::class, 'destroy'],
+
     // ===== Admin :: Associations =====
     'GET /admin/associations'              => [AdminAssociationsController::class, 'index'],
     'GET /admin/associations/new'          => [AdminAssociationsController::class, 'create'],

@@ -308,6 +308,7 @@ CREATE TABLE association_question_bank (
     question_id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
     association_id           INT UNSIGNED  NOT NULL,
     submitted_by_panelist_id INT UNSIGNED  NULL,
+    created_by_assoc_user_id INT UNSIGNED  NULL,
     question_text            TEXT          NOT NULL,
     option_a                 VARCHAR(500)  NOT NULL,
     option_b                 VARCHAR(500)  NOT NULL,
@@ -320,12 +321,13 @@ CREATE TABLE association_question_bank (
     difficulty               ENUM('easy','medium','hard')
                                        NOT NULL DEFAULT 'medium',
     reference_source         VARCHAR(255)  NULL,
-    status                   ENUM('pending','approved','rejected',
+    status                   ENUM('draft','pending','approved','rejected',
                                   'needs_revision')
-                                       NOT NULL DEFAULT 'pending',
+                                       NOT NULL DEFAULT 'draft',
     reviewed_by_user_id      INT UNSIGNED  NULL,
     reviewed_at              DATETIME      NULL,
     reject_reason            TEXT          NULL,
+    submitted_at             DATETIME      NULL,
     promoted_to_master       TINYINT(1)    NOT NULL DEFAULT 0,
     master_question_id       INT UNSIGNED  NULL,
     created_at               DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -334,6 +336,7 @@ CREATE TABLE association_question_bank (
     PRIMARY KEY (question_id),
     KEY idx_qb_assoc (association_id),
     KEY idx_qb_panelist (submitted_by_panelist_id),
+    KEY idx_qb_created_by_au (created_by_assoc_user_id),
     KEY idx_qb_status (status),
     KEY idx_qb_difficulty (difficulty),
     KEY idx_qb_sport (sport),
@@ -344,6 +347,10 @@ CREATE TABLE association_question_bank (
     CONSTRAINT fk_qb_panelist
         FOREIGN KEY (submitted_by_panelist_id)
             REFERENCES expert_panelists(panelist_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_qb_created_by_au
+        FOREIGN KEY (created_by_assoc_user_id)
+            REFERENCES association_users(association_user_id)
         ON DELETE SET NULL,
     CONSTRAINT fk_qb_reviewer
         FOREIGN KEY (reviewed_by_user_id)
