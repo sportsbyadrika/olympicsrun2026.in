@@ -1,0 +1,17 @@
+# Front-controller routing: send every request that isn't a real file
+# or directory through public/index.php.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct access to dotfiles
+    RewriteRule "^\." - [F]
+
+    # If the request is not a real file or directory, route to index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Sensible defaults
+Options -Indexes

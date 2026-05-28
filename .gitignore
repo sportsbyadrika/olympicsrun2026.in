@@ -1,0 +1,26 @@
+# Local config (real credentials live outside the repo)
+config/config.local.php
+config/database.local.php
+.env
+.env.local
+
+# Runtime artefacts
+/uploads/*
+!/uploads/.gitkeep
+/logs/*
+!/logs/.gitkeep
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Composer (if added later)
+/vendor/
+composer.lock
+
+# Build output
+/public/css/dist/
+/public/js/dist/
