@@ -184,9 +184,10 @@ Report inventory:
 | Language     | PHP 8.x                                             |
 | Database     | MySQL 8.x (utf8mb4)                                 |
 | Server       | Apache / Nginx with PHP-FPM                         |
-| Frontend     | HTML5 + Tailwind CSS (mobile-first responsive)      |
+| Frontend     | HTML5 + Bootstrap 5.3 (mobile-first responsive)     |
 | Scripting    | Vanilla JS + jQuery (3.x), AJAX for all dynamic UI  |
 | Drag-and-drop| SortableJS                                          |
+| Brand palette| Navy #1A2B49, Teal #00897B, Panel #F5F7FA, BG #FFF  |
 | Reports      | Printable HTML opened in a new tab (`window.open`)  |
 | Sessions     | PHP native sessions, secure cookies                 |
 | Auth         | Password hashing via `password_hash` (bcrypt)       |
@@ -196,6 +197,8 @@ Hard constraints:
 - **Mobile-first.** Every page must work on a 360px-wide screen first.
   Tablet and desktop are progressive enhancements.
 - **No SPA framework.** jQuery + AJAX only. No React / Vue / Svelte.
+- **Bootstrap 5.3.** Navbar is `navbar-expand-lg` and collapses to a
+  hamburger below the `lg` breakpoint.
 - **No PDF library.** Reports use the browser's native print.
 
 ---

@@ -13,7 +13,8 @@ see [`PROJECT_SPEC.md`](./PROJECT_SPEC.md).
 - PHP 8.x
 - MySQL 8.x
 - Vanilla JS + jQuery, AJAX everywhere
-- Tailwind CSS, mobile-first responsive
+- Bootstrap 5.3, mobile-first responsive
+- Corporate palette: navy `#1A2B49`, teal `#00897B`, panel `#F5F7FA`, white
 - SortableJS for drag-and-drop (question curation, slot assignment)
 - Printable HTML reports (opened in a new tab; uses `window.print`)
 
