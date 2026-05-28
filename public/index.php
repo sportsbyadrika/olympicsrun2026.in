@@ -36,6 +36,12 @@ $routes = [
     'POST /panelist/review/{id}/reject'          => [PanelistReviewController::class, 'reject'],
     'POST /panelist/review/{id}/revise'          => [PanelistReviewController::class, 'revise'],
 
+    // ===== School :: Quiz engine =====
+    'POST /school/quiz/start'             => [SchoolQuizController::class, 'start'],
+    'GET /school/quiz'                    => [SchoolQuizController::class, 'show'],
+    'GET /api/school/quiz/state'          => [SchoolQuizController::class, 'apiState'],
+    'POST /api/school/quiz/answer'        => [SchoolQuizController::class, 'apiAnswer'],
+
     // ===== Panelist :: Slot Builder (drag & drop) =====
     'GET /panelist/slots'                          => [PanelistSlotsController::class, 'index'],
     'GET /panelist/slots/{id}'                     => [PanelistSlotsController::class, 'build'],

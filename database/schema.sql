@@ -455,6 +455,7 @@ CREATE TABLE responses (
     slot_question_id   INT UNSIGNED   NOT NULL,
     master_question_id INT UNSIGNED   NOT NULL,
     chosen_option      ENUM('A','B','C','D') NULL,
+    status             ENUM('draft','submitted') NOT NULL DEFAULT 'draft',
     is_correct         TINYINT(1)     NULL,
     marks_awarded      DECIMAL(5,2)   NULL,
     answered_at        DATETIME       NULL,
@@ -463,6 +464,7 @@ CREATE TABLE responses (
     UNIQUE KEY uniq_attempt_q (slot_school_id, slot_question_id),
     KEY idx_resp_master (master_question_id),
     KEY idx_resp_correct (is_correct),
+    KEY idx_resp_status (status),
     CONSTRAINT fk_resp_attempt
         FOREIGN KEY (slot_school_id) REFERENCES slot_schools(slot_school_id)
         ON DELETE CASCADE,
