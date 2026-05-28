@@ -20,11 +20,7 @@ function csrf_field(): string
     return '<input type="hidden" name="_csrf" value="' . e($token) . '">';
 }
 
-function old(string $key, string $default = ''): string
-{
-    $val = $_SESSION['_old'][$key] ?? $default;
-    return is_string($val) ? $val : $default;
-}
+/* ------------------- Flash + Old + Errors --------------------------------*/
 
 function flash_set(string $type, string $message): void
 {
@@ -40,6 +36,58 @@ function flash_pull(string $type): ?string
     return $msg;
 }
 
+function flash_old(array $data): void
+{
+    // Strip out sensitive fields automatically.
+    foreach (['password', 'password_confirmation', '_csrf'] as $k) {
+        unset($data[$k]);
+    }
+    $_SESSION['_old'] = $data;
+}
+
+function pull_old(): array
+{
+    $o = $_SESSION['_old'] ?? [];
+    unset($_SESSION['_old']);
+    return $o;
+}
+
+function flash_errors(array $errors): void
+{
+    $_SESSION['_errors'] = $errors;
+}
+
+function pull_errors(): array
+{
+    $e = $_SESSION['_errors'] ?? [];
+    unset($_SESSION['_errors']);
+    return $e;
+}
+
+/** Form field helper: returns old value if present, otherwise the model value. */
+function field(array $old, ?array $model, string $key, string $default = ''): string
+{
+    if (array_key_exists($key, $old))            return (string)$old[$key];
+    if ($model !== null && isset($model[$key]))  return (string)$model[$key];
+    return $default;
+}
+
+/** Render an inline error message for a field, or empty string. */
+function err(array $errors, string $key): string
+{
+    return isset($errors[$key])
+        ? '<div class="invalid-feedback d-block">' . e($errors[$key]) . '</div>'
+        : '';
+}
+
+/** Returns the "is-invalid" class if a field has a validation error. */
+function invalid_class(array $errors, string $key): string
+{
+    return isset($errors[$key]) ? ' is-invalid' : '';
+}
+
+/* ------------------- Views ------------------------------------------------*/
+
 function view(string $template, array $data = []): string
 {
     $__file = __DIR__ . '/../views/' . $template . '.php';
@@ -52,10 +100,6 @@ function view(string $template, array $data = []): string
     return ob_get_clean();
 }
 
-/**
- * Render a view inside the base layout.
- * Pass ['layout' => false] in $data to render bare (e.g. printable reports).
- */
 function render(string $template, array $data = []): void
 {
     $useLayout = $data['layout'] ?? true;
@@ -71,18 +115,63 @@ function render(string $template, array $data = []): void
     include __DIR__ . '/../views/layouts/app.php';
 }
 
-/** Menu items per role for the navbar. */
+/* ------------------- UI helpers ------------------------------------------*/
+
+/** Status badge CSS class from a status string. */
+function status_badge(?string $status): string
+{
+    $map = [
+        'active'         => 'bg-success-subtle text-success-emphasis border border-success-subtle',
+        'approved'       => 'bg-success-subtle text-success-emphasis border border-success-subtle',
+        'open'           => 'bg-success-subtle text-success-emphasis border border-success-subtle',
+        'published'      => 'bg-success-subtle text-success-emphasis border border-success-subtle',
+        'pending'        => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+        'needs_revision' => 'bg-warning-subtle text-warning-emphasis border border-warning-subtle',
+        'scheduled'      => 'bg-info-subtle text-info-emphasis border border-info-subtle',
+        'draft'          => 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle',
+        'closed'         => 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle',
+        'inactive'       => 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle',
+        'suspended'      => 'bg-danger-subtle text-danger-emphasis border border-danger-subtle',
+        'rejected'       => 'bg-danger-subtle text-danger-emphasis border border-danger-subtle',
+        'cancelled'      => 'bg-danger-subtle text-danger-emphasis border border-danger-subtle',
+        'disqualified'   => 'bg-danger-subtle text-danger-emphasis border border-danger-subtle',
+    ];
+    $key = strtolower((string)$status);
+    return 'badge ' . ($map[$key] ?? 'bg-light text-dark border');
+}
+
+function status_label(?string $status): string
+{
+    return ucwords(str_replace('_', ' ', (string)$status));
+}
+
+/* ------------------- Navigation ------------------------------------------*/
+
+/**
+ * Menu items per role. Items may have either 'url' (flat link) or
+ * 'children' (dropdown).
+ */
 function nav_for_role(string $role): array
 {
     return match ($role) {
         Auth::ROLE_ADMIN => [
-            ['label' => 'Dashboard',     'url' => '/admin/dashboard'],
-            ['label' => 'Users',         'url' => '/admin/users'],
-            ['label' => 'Questions',     'url' => '/admin/questions'],
-            ['label' => 'Question Sets', 'url' => '/admin/sets'],
-            ['label' => 'Slots',         'url' => '/admin/slots'],
-            ['label' => 'Settings',      'url' => '/admin/settings'],
-            ['label' => 'Reports',       'url' => '/admin/reports'],
+            ['label' => 'Dashboard', 'url' => '/admin/dashboard'],
+            ['label' => 'Masters', 'children' => [
+                ['label' => 'Associations', 'url' => '/admin/associations'],
+                ['label' => 'Schools',      'url' => '/admin/schools'],
+            ]],
+            ['label' => 'Users', 'children' => [
+                ['label' => 'Association Users', 'url' => '/admin/association-users'],
+                ['label' => 'Expert Panelists',  'url' => '/admin/panelists'],
+                ['label' => 'School Logins',     'url' => '/admin/school-logins'],
+            ]],
+            ['label' => 'Quiz', 'children' => [
+                ['label' => 'Rounds', 'url' => '/admin/rounds'],
+                ['label' => 'Slots',  'url' => '/admin/slots'],
+            ]],
+            ['label' => 'Questions', 'url' => '/admin/questions'],
+            ['label' => 'Settings',  'url' => '/admin/settings'],
+            ['label' => 'Reports',   'url' => '/admin/reports'],
         ],
         Auth::ROLE_ASSOCIATION => [
             ['label' => 'Dashboard', 'url' => '/association/dashboard'],
@@ -104,4 +193,20 @@ function nav_for_role(string $role): array
         ],
         default => [],
     };
+}
+
+/** Format a MySQL DATETIME for an HTML datetime-local input. */
+function dt_for_input(?string $mysqlDatetime): string
+{
+    if (!$mysqlDatetime) return '';
+    $ts = strtotime($mysqlDatetime);
+    return $ts === false ? '' : date('Y-m-d\TH:i', $ts);
+}
+
+/** Format a MySQL DATETIME for display. */
+function dt_display(?string $mysqlDatetime, string $format = 'd M Y, h:i A'): string
+{
+    if (!$mysqlDatetime) return '—';
+    $ts = strtotime($mysqlDatetime);
+    return $ts === false ? '—' : date($format, $ts);
 }

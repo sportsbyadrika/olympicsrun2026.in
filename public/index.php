@@ -1,41 +1,122 @@
 <?php
 /**
- * Front controller. .htaccess rewrites every non-file request here.
- * Tiny route table maps "METHOD /path" -> controller method.
+ * Front controller.
+ * Routes are "METHOD /path" => [Class, 'method'] (or a closure).
+ * Path segments wrapped in {name} are captured and passed positionally
+ * to the handler.
  */
 
 require __DIR__ . '/../includes/bootstrap.php';
 
-$path   = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
-$path   = rtrim($path, '/') ?: '/';
-$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$key    = $method . ' ' . $path;
+$reqPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
+$reqPath = rtrim($reqPath, '/') ?: '/';
+$method  = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+/* --- Routes ------------------------------------------------------------- */
 
 $routes = [
-    'GET /'                       => fn() => Auth::check()
-                                          ? redirect(Auth::dashboardUrl(Auth::role()))
-                                          : redirect('/login'),
+    // Public
+    'GET /'         => fn() => Auth::check()
+                            ? redirect(Auth::dashboardUrl(Auth::role()))
+                            : redirect('/login'),
+    'GET /login'    => [AuthController::class, 'showLogin'],
+    'POST /login'   => [AuthController::class, 'doLogin'],
+    'GET /logout'   => [AuthController::class, 'logout'],
 
-    'GET /login'                  => [AuthController::class, 'showLogin'],
-    'POST /login'                 => [AuthController::class, 'doLogin'],
-    'GET /logout'                 => [AuthController::class, 'logout'],
+    // Role dashboards
+    'GET /admin/dashboard'       => [AdminController::class, 'dashboard'],
+    'GET /association/dashboard' => [AssociationController::class, 'dashboard'],
+    'GET /panelist/dashboard'    => [PanelistController::class, 'dashboard'],
+    'GET /school/dashboard'      => [SchoolController::class, 'dashboard'],
 
-    'GET /admin/dashboard'        => [AdminController::class, 'dashboard'],
-    'GET /association/dashboard'  => [AssociationController::class, 'dashboard'],
-    'GET /panelist/dashboard'     => [PanelistController::class, 'dashboard'],
-    'GET /school/dashboard'       => [SchoolController::class, 'dashboard'],
+    // ===== Admin :: Associations =====
+    'GET /admin/associations'              => [AdminAssociationsController::class, 'index'],
+    'GET /admin/associations/new'          => [AdminAssociationsController::class, 'create'],
+    'POST /admin/associations'             => [AdminAssociationsController::class, 'store'],
+    'GET /admin/associations/{id}/edit'    => [AdminAssociationsController::class, 'edit'],
+    'POST /admin/associations/{id}'        => [AdminAssociationsController::class, 'update'],
+    'POST /admin/associations/{id}/delete' => [AdminAssociationsController::class, 'destroy'],
+
+    // ===== Admin :: Schools =====
+    'GET /admin/schools'              => [AdminSchoolsController::class, 'index'],
+    'GET /admin/schools/new'          => [AdminSchoolsController::class, 'create'],
+    'POST /admin/schools'             => [AdminSchoolsController::class, 'store'],
+    'GET /admin/schools/{id}/edit'    => [AdminSchoolsController::class, 'edit'],
+    'POST /admin/schools/{id}'        => [AdminSchoolsController::class, 'update'],
+    'POST /admin/schools/{id}/delete' => [AdminSchoolsController::class, 'destroy'],
+
+    // ===== Admin :: Association Users =====
+    'GET /admin/association-users'              => [AdminAssociationUsersController::class, 'index'],
+    'GET /admin/association-users/new'          => [AdminAssociationUsersController::class, 'create'],
+    'POST /admin/association-users'             => [AdminAssociationUsersController::class, 'store'],
+    'GET /admin/association-users/{id}/edit'    => [AdminAssociationUsersController::class, 'edit'],
+    'POST /admin/association-users/{id}'        => [AdminAssociationUsersController::class, 'update'],
+    'POST /admin/association-users/{id}/delete' => [AdminAssociationUsersController::class, 'destroy'],
+
+    // ===== Admin :: Expert Panelists =====
+    'GET /admin/panelists'              => [AdminPanelistsController::class, 'index'],
+    'GET /admin/panelists/new'          => [AdminPanelistsController::class, 'create'],
+    'POST /admin/panelists'             => [AdminPanelistsController::class, 'store'],
+    'GET /admin/panelists/{id}/edit'    => [AdminPanelistsController::class, 'edit'],
+    'POST /admin/panelists/{id}'        => [AdminPanelistsController::class, 'update'],
+    'POST /admin/panelists/{id}/delete' => [AdminPanelistsController::class, 'destroy'],
+
+    // ===== Admin :: School Logins =====
+    'GET /admin/school-logins'                  => [AdminSchoolLoginsController::class, 'index'],
+    'GET /admin/school-logins/new'              => [AdminSchoolLoginsController::class, 'create'],
+    'POST /admin/school-logins'                 => [AdminSchoolLoginsController::class, 'store'],
+    'GET /admin/school-logins/{id}/edit'        => [AdminSchoolLoginsController::class, 'edit'],
+    'POST /admin/school-logins/{id}'            => [AdminSchoolLoginsController::class, 'update'],
+    'POST /admin/school-logins/{id}/delete'     => [AdminSchoolLoginsController::class, 'destroy'],
+    'POST /admin/school-logins/{id}/reset'      => [AdminSchoolLoginsController::class, 'resetPassword'],
+
+    // ===== Admin :: Rounds =====
+    'GET /admin/rounds'              => [AdminRoundsController::class, 'index'],
+    'GET /admin/rounds/new'          => [AdminRoundsController::class, 'create'],
+    'POST /admin/rounds'             => [AdminRoundsController::class, 'store'],
+    'GET /admin/rounds/{id}/edit'    => [AdminRoundsController::class, 'edit'],
+    'POST /admin/rounds/{id}'        => [AdminRoundsController::class, 'update'],
+    'POST /admin/rounds/{id}/delete' => [AdminRoundsController::class, 'destroy'],
+
+    // ===== Admin :: Slots =====
+    'GET /admin/slots'                  => [AdminSlotsController::class, 'index'],
+    'GET /admin/slots/new'              => [AdminSlotsController::class, 'create'],
+    'POST /admin/slots'                 => [AdminSlotsController::class, 'store'],
+    'GET /admin/slots/{id}/edit'        => [AdminSlotsController::class, 'edit'],
+    'POST /admin/slots/{id}'            => [AdminSlotsController::class, 'update'],
+    'POST /admin/slots/{id}/delete'     => [AdminSlotsController::class, 'destroy'],
+    'GET /admin/slots/{id}/assign'      => [AdminSlotsController::class, 'assignForm'],
+    'POST /admin/slots/{id}/assign'     => [AdminSlotsController::class, 'assignSave'],
+    'POST /admin/slots/{id}/unassign'   => [AdminSlotsController::class, 'unassign'],
 ];
 
-if (!isset($routes[$key])) {
-    http_response_code(404);
-    render('errors/404', ['title' => 'Not found — Olympics Run 2026']);
-    exit;
+/* --- Dispatch ----------------------------------------------------------- */
+
+foreach ($routes as $pattern => $handler) {
+    [$rMethod, $rPath] = explode(' ', $pattern, 2);
+    if ($rMethod !== $method) continue;
+
+    if (!str_contains($rPath, '{')) {
+        if ($rPath !== $reqPath) continue;
+        $params = [];
+    } else {
+        $regex = '#^' . preg_replace('#\{(\w+)\}#', '(?<$1>[^/]+)', $rPath) . '$#';
+        if (!preg_match($regex, $reqPath, $m)) continue;
+        $params = array_values(array_filter(
+            $m,
+            static fn($k) => is_string($k),
+            ARRAY_FILTER_USE_KEY
+        ));
+    }
+
+    if (is_array($handler)) {
+        [$class, $methodName] = $handler;
+        (new $class)->$methodName(...$params);
+    } else {
+        $handler(...$params);
+    }
+    return;
 }
 
-$handler = $routes[$key];
-if (is_array($handler)) {
-    [$class, $method] = $handler;
-    (new $class)->$method();
-} else {
-    $handler();
-}
+http_response_code(404);
+render('errors/404', ['title' => 'Not found — Olympics Run 2026']);

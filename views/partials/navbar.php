@@ -1,3 +1,19 @@
+<?php
+$currentPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
+$items = Auth::check() ? nav_for_role(Auth::role()) : [];
+
+$isItemActive = static function (array $item) use ($currentPath): bool {
+    if (isset($item['url']) && $currentPath === $item['url']) return true;
+    if (!empty($item['children'])) {
+        foreach ($item['children'] as $c) {
+            if (isset($c['url']) && str_starts_with($currentPath ?: '', rtrim($c['url'], '/'))) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+?>
 <nav class="navbar navbar-expand-lg navbar-dark bg-navy shadow-sm">
     <div class="container-fluid">
         <a class="navbar-brand fw-semibold d-flex align-items-center" href="/">
@@ -15,18 +31,37 @@
         <div class="collapse navbar-collapse" id="mainNav">
             <?php if (Auth::check()): ?>
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <?php
-                    $currentPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?');
-                    foreach (nav_for_role(Auth::role()) as $item):
-                        $active = $currentPath === $item['url'];
+                    <?php foreach ($items as $i => $item):
+                        $active = $isItemActive($item);
                     ?>
-                        <li class="nav-item">
-                            <a class="nav-link <?= $active ? 'active' : '' ?>"
-                               <?= $active ? 'aria-current="page"' : '' ?>
-                               href="<?= e($item['url']) ?>">
-                                <?= e($item['label']) ?>
-                            </a>
-                        </li>
+                        <?php if (!empty($item['children'])): ?>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle <?= $active ? 'active' : '' ?>"
+                                   href="#" role="button"
+                                   id="nav-dd-<?= $i ?>"
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <?= e($item['label']) ?>
+                                </a>
+                                <ul class="dropdown-menu shadow-sm" aria-labelledby="nav-dd-<?= $i ?>">
+                                    <?php foreach ($item['children'] as $c): ?>
+                                        <li>
+                                            <a class="dropdown-item <?= $currentPath === $c['url'] ? 'active' : '' ?>"
+                                               href="<?= e($c['url']) ?>">
+                                                <?= e($c['label']) ?>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </li>
+                        <?php else: ?>
+                            <li class="nav-item">
+                                <a class="nav-link <?= $active ? 'active' : '' ?>"
+                                   <?= $active ? 'aria-current="page"' : '' ?>
+                                   href="<?= e($item['url']) ?>">
+                                    <?= e($item['label']) ?>
+                                </a>
+                            </li>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </ul>
 
