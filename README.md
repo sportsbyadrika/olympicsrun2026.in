@@ -55,10 +55,9 @@ olympicsrun2026.in/
 │   ├── img/                   logos, icons, static assets
 │   └── vendor/                third-party JS (jQuery, SortableJS, Tailwind)
 │
-├── sql/
-│   ├── schema.sql             (next phase) full schema
-│   ├── seed.sql               (next phase) admin user + default settings
-│   └── migrations/            future schema changes
+├── database/
+│   ├── schema.sql             full schema + seed data
+│   └── migrations/            (future) incremental schema changes
 │
 ├── uploads/                   runtime user uploads (gitignored contents)
 └── logs/                      app + PHP error logs (gitignored contents)
@@ -87,7 +86,8 @@ Front-controller routing handled by `public/index.php` + `public/.htaccess`:
 1. Clone the repo.
 2. Copy `config/config.example.php` → `config/config.local.php` and fill in
    DB credentials.
-3. Create a MySQL 8 database, then load `sql/schema.sql` and `sql/seed.sql`.
+3. Create a MySQL 8 database, then load `database/schema.sql` (it contains
+   schema + seed data in one file).
 4. Point Apache/Nginx document root at the `public/` folder, ensure
    `mod_rewrite` is enabled.
 5. Make sure `uploads/` and `logs/` are writable by the web-server user.

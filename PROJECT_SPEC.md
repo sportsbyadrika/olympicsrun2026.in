@@ -256,7 +256,7 @@ the `settings` table.
 
 ## 6. Data model (overview)
 
-The schema lives in `sql/schema.sql`. Tables (in dependency order):
+The schema lives in `database/schema.sql`. Tables (in dependency order):
 
 - `users` — single auth table; column `role` ∈ {`admin`, `association`,
   `panelist`, `school`}.
@@ -313,7 +313,7 @@ See `README.md` for the on-disk layout. Summary:
 /controllers   one class per route group, calls models, picks a view
 /views         PHP templates; sub-folders by role; layouts + partials
 /public        web root: index.php, .htaccess, /css /js /img /vendor
-/sql           schema.sql, seed.sql, migrations/
+/database      schema.sql (schema + seed), migrations/
 /uploads       runtime user uploads (gitignored)
 /logs          PHP error log, app log (gitignored)
 ```
