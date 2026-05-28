@@ -79,9 +79,9 @@ $slotStateLabel = static function (array $a, int $now): array {
                                 </button>
                             </form>
                         <?php elseif ($a['attempt_status'] === 'submitted'): ?>
-                            <button class="btn btn-outline-secondary" disabled>
-                                <i class="bi bi-check2-circle me-1"></i> Submitted
-                            </button>
+                            <a href="/school/result" class="btn btn-outline-navy">
+                                <i class="bi bi-check2-circle me-1"></i> View result
+                            </a>
                         <?php else: ?>
                             <button class="btn btn-outline-secondary" disabled>
                                 <i class="bi bi-clock me-1"></i>

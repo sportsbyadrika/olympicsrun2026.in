@@ -39,8 +39,10 @@ $routes = [
     // ===== School :: Quiz engine =====
     'POST /school/quiz/start'             => [SchoolQuizController::class, 'start'],
     'GET /school/quiz'                    => [SchoolQuizController::class, 'show'],
+    'GET /school/result'                  => [SchoolQuizController::class, 'result'],
     'GET /api/school/quiz/state'          => [SchoolQuizController::class, 'apiState'],
     'POST /api/school/quiz/answer'        => [SchoolQuizController::class, 'apiAnswer'],
+    'POST /api/school/quiz/submit'        => [SchoolQuizController::class, 'apiSubmit'],
 
     // ===== Panelist :: Slot Builder (drag & drop) =====
     'GET /panelist/slots'                          => [PanelistSlotsController::class, 'index'],

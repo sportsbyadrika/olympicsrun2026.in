@@ -95,8 +95,7 @@ $stateOf = static function (int $sqid) use ($responses): string {
             </div>
 
             <div class="text-end mt-4">
-                <button type="button" class="btn btn-accent text-white" id="btnFinish" disabled
-                        title="Submission goes live in the next phase">
+                <button type="button" class="btn btn-accent text-white" id="btnFinish">
                     <i class="bi bi-check2-circle me-1"></i> Finish quiz
                 </button>
             </div>
@@ -107,8 +106,8 @@ $stateOf = static function (int $sqid) use ($responses): string {
     <div id="timeUpOverlay" class="quiz-overlay d-none">
         <div class="card panel border-0 shadow-lg text-center p-4 mx-3">
             <h3 class="text-danger mb-2"><i class="bi bi-hourglass-bottom"></i> Time's up</h3>
-            <p class="text-muted mb-1">Your answers have been saved.</p>
-            <p class="small text-muted mb-0">Auto-submission lands in the next phase.</p>
+            <p class="text-muted mb-1">Your answers have been auto-submitted.</p>
+            <p class="small text-muted mb-0">Redirecting to your result&hellip;</p>
         </div>
     </div>
 </div>
@@ -226,6 +225,42 @@ $stateOf = static function (int $sqid) use ($responses): string {
         });
     });
 
+    document.getElementById('btnFinish').addEventListener('click', function () {
+        if (locked) return;
+        var unanswered = document.querySelectorAll(
+            '.qnav-btn[data-state="unanswered"], .qnav-btn[data-state="draft"]'
+        ).length;
+        var msg = 'Finish the quiz and submit?';
+        if (unanswered > 0) {
+            msg = 'You have ' + unanswered +
+                  ' unanswered or draft question(s). Submit anyway? ' +
+                  'You will not be able to change answers after this.';
+        }
+        if (!confirm(msg)) return;
+        finishQuiz();
+    });
+
+    function finishQuiz() {
+        locked = true;
+        fetch('/api/school/quiz/submit', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-CSRF-Token': csrf, 'Accept': 'application/json' }
+        }).then(function (r) { return r.json(); })
+          .then(function (json) {
+              if (json.ok && json.redirect) {
+                  window.location.href = json.redirect;
+              } else {
+                  alert('Submission failed: ' + (json.error || 'unknown error'));
+                  locked = false;
+              }
+          })
+          .catch(function () {
+              alert('Network error during submit. Please try again.');
+              locked = false;
+          });
+    }
+
     // ---------- Auto-save on selection ----------
     document.querySelectorAll('.quiz-radio').forEach(function (r) {
         r.addEventListener('change', function () {
@@ -261,6 +296,11 @@ $stateOf = static function (int $sqid) use ($responses): string {
               if (!json.ok) {
                   if (json.error === 'time_up' || json.error === 'attempt_not_active') {
                       lockUI();
+                      if (json.redirect) {
+                          setTimeout(function () {
+                              window.location.href = json.redirect;
+                          }, 1200);
+                      }
                   }
                   return;
               }
@@ -295,7 +335,12 @@ $stateOf = static function (int $sqid) use ($responses): string {
         if (locked) return;
         remaining = Math.max(0, remaining - 1);
         renderTimer();
-        if (remaining === 0) lockUI();
+        if (remaining === 0) {
+            lockUI();
+            // Don't wait for the next periodic sync — fetch state immediately
+            // so the server force-submits and redirects us.
+            sync();
+        }
     }
     setInterval(tick, 1000);
 
@@ -308,8 +353,9 @@ $stateOf = static function (int $sqid) use ($responses): string {
         }).then(function (r) { return r.json(); })
           .then(function (json) {
               if (!json.ok) return;
-              if (json.attempt_status === 'submitted') {
-                  window.location.href = '/school/dashboard';
+              if (json.attempt_status === 'submitted' || json.redirect) {
+                  lockUI();
+                  window.location.href = json.redirect || '/school/result';
                   return;
               }
               if (typeof json.remaining_seconds === 'number') {
