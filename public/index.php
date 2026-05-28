@@ -36,6 +36,13 @@ $routes = [
     'POST /panelist/review/{id}/reject'          => [PanelistReviewController::class, 'reject'],
     'POST /panelist/review/{id}/revise'          => [PanelistReviewController::class, 'revise'],
 
+    // ===== Panelist :: Slot Builder (drag & drop) =====
+    'GET /panelist/slots'                          => [PanelistSlotsController::class, 'index'],
+    'GET /panelist/slots/{id}'                     => [PanelistSlotsController::class, 'build'],
+    'POST /api/panelist/slot-questions/assign'     => [PanelistSlotsController::class, 'apiAssign'],
+    'POST /api/panelist/slot-questions/unassign'   => [PanelistSlotsController::class, 'apiUnassign'],
+    'POST /api/panelist/slot-questions/reorder'    => [PanelistSlotsController::class, 'apiReorder'],
+
     // ===== Panelist :: Master bank =====
     'GET /panelist/master'                       => [PanelistMasterController::class, 'index'],
     'GET /panelist/master/new'                   => [PanelistMasterController::class, 'create'],
