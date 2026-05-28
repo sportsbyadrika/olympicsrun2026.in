@@ -170,6 +170,7 @@ function nav_for_role(string $role): array
                 ['label' => 'Slots',  'url' => '/admin/slots'],
             ]],
             ['label' => 'Questions', 'url' => '/admin/questions'],
+            ['label' => 'Email Templates', 'url' => '/admin/email-templates'],
             ['label' => 'Settings',  'url' => '/admin/settings'],
             ['label' => 'Reports',   'url' => '/admin/reports'],
         ],

@@ -38,6 +38,13 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+// Composer autoload (PHPMailer etc.) — optional; the app continues to boot
+// even before `composer install` is run, with Mailer degrading gracefully.
+$__vendor = __DIR__ . '/../vendor/autoload.php';
+if (is_file($__vendor)) {
+    require_once $__vendor;
+}
+
 // Helpers (functions, can't be autoloaded)
 require_once __DIR__ . '/helpers.php';
 

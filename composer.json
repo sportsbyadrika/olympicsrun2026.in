@@ -1,0 +1,14 @@
+{
+    "name": "kerala-olympic-association/olympicsrun2026.in",
+    "description": "Olympics Run 2026 quiz platform for Kerala Olympic Association",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.1",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}

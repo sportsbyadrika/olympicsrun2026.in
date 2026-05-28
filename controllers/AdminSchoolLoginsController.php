@@ -126,6 +126,27 @@ final class AdminSchoolLoginsController
         redirect('/admin/school-logins');
     }
 
+    /**
+     * Generate a new password, email it to the school's contact_email, and
+     * (only on email success) persist the new hash + stamp credentials_sent_at.
+     */
+    public function sendCredentials(string $id): void
+    {
+        Auth::requireRole(Auth::ROLE_ADMIN);
+        Csrf::requireValidPost();
+
+        $login = SchoolLogin::find((int)$id);
+        if (!$login) { http_response_code(404); render('errors/404'); return; }
+
+        $res = SchoolMail::sendCredentials((int)$id);
+        if ($res['ok']) {
+            flash_set('success', 'Credentials emailed to ' . $login['school_name'] . '.');
+        } else {
+            flash_set('error', 'Email failed: ' . ($res['error'] ?? 'unknown'));
+        }
+        redirect('/admin/school-logins');
+    }
+
     private function validate(array $d, ?int $exceptId, bool $requirePassword): Validator
     {
         $v = (new Validator($d))
