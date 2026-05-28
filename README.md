@@ -89,9 +89,16 @@ Front-controller routing handled by `public/index.php` + `public/.htaccess`:
    DB credentials.
 3. Create a MySQL 8 database, then load `database/schema.sql` (it contains
    schema + seed data in one file).
-4. Point Apache/Nginx document root at the `public/` folder, ensure
+4. Install PHP dependencies (PHPMailer is used for SMTP credential emails):
+
+       composer install
+
+   The app boots without this, but the "Send credentials" admin action will
+   refuse to send until PHPMailer is present.
+
+5. Point Apache/Nginx document root at the `public/` folder, ensure
    `mod_rewrite` is enabled.
-5. Make sure `uploads/` and `logs/` are writable by the web-server user.
+6. Make sure `uploads/` and `logs/` are writable by the web-server user.
 
 ---
 

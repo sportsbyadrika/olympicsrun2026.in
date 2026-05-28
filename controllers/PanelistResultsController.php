@@ -77,7 +77,7 @@ final class PanelistResultsController
 
         // Best-effort assign to chosen R2 slots. We only allow slots in the
         // panelist's association whose round_number is 2.
-        $assigned = 0; $skipped = 0;
+        $assigned = 0; $skipped = 0; $emailedSchools = [];
         foreach ($qIds as $schoolId) {
             $slotId = (int)($slotAssignments[$schoolId] ?? 0);
             if ($slotId <= 0) { $skipped++; continue; }
@@ -105,11 +105,22 @@ final class PanelistResultsController
                 null
             );
             $assigned++;
+            $emailedSchools[] = $schoolId;
         }
 
         $msg = count($qIds) . ' qualifier(s) marked';
         if ($assigned > 0) $msg .= ', ' . $assigned . ' assigned to Round 2';
         if ($skipped > 0)  $msg .= ' (' . $skipped . ' qualifier(s) had no slot picked)';
+
+        if ($assigned > 0 && Settings::bool('mail_auto_send_on_assign')) {
+            $sent = $failed = 0;
+            foreach ($emailedSchools as $sid) {
+                $r = SchoolMail::sendCredentialsForSchool($sid);
+                $sent   += $r['sent'];
+                $failed += $r['failed'];
+            }
+            $msg .= ". Credentials emailed: {$sent} sent, {$failed} failed";
+        }
         flash_set('success', $msg . '.');
         redirect('/panelist/results/round/' . (int)$id);
     }

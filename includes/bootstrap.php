@@ -38,8 +38,27 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+// Composer autoload (PHPMailer etc.) — optional; the app continues to boot
+// even before `composer install` is run, with Mailer degrading gracefully.
+$__vendor = __DIR__ . '/../vendor/autoload.php';
+if (is_file($__vendor)) {
+    require_once $__vendor;
+}
+
 // Helpers (functions, can't be autoloaded)
 require_once __DIR__ . '/helpers.php';
+
+// Security response headers — applied to every HTTP response (no-op in CLI).
+if (PHP_SAPI !== 'cli' && !headers_sent()) {
+    header('X-Frame-Options: DENY');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: same-origin');
+    header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+    if (($cfg['app']['env'] ?? 'local') === 'production'
+        && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
 
 // Session ------------------------------------------------------------------
 // Skipped in CLI: cron scripts (e.g. force-submit-expired) have no user

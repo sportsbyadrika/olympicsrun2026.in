@@ -129,6 +129,7 @@ final class AdminSlotsController
         }
 
         $assigned = 0;
+        $emailedSchools = [];
         foreach ($schoolIds as $sid) {
             $sidInt = (int)$sid;
             if ($sidInt <= 0) continue;
@@ -141,9 +142,21 @@ final class AdminSlotsController
             );
             Slot::assignSchool((int)$id, $sidInt, $login['school_login_id'] ?? null, Auth::id());
             $assigned++;
+            $emailedSchools[] = $sidInt;
         }
 
-        flash_set('success', $assigned . ' school' . ($assigned === 1 ? '' : 's') . ' assigned.');
+        $msg = $assigned . ' school' . ($assigned === 1 ? '' : 's') . ' assigned.';
+        if ($assigned > 0 && Settings::bool('mail_auto_send_on_assign')) {
+            $sent = $skipped = $failed = 0;
+            foreach ($emailedSchools as $sidInt) {
+                $r = SchoolMail::sendCredentialsForSchool($sidInt);
+                $sent    += $r['sent'];
+                $skipped += $r['skipped'];
+                $failed  += $r['failed'];
+            }
+            $msg .= " Credentials emailed: {$sent} sent, {$skipped} already-sent, {$failed} failed.";
+        }
+        flash_set('success', $msg);
         redirect('/admin/slots/' . $id . '/assign');
     }
 

@@ -130,7 +130,13 @@ $routes = [
     'GET /admin/school-logins/{id}/edit'        => [AdminSchoolLoginsController::class, 'edit'],
     'POST /admin/school-logins/{id}'            => [AdminSchoolLoginsController::class, 'update'],
     'POST /admin/school-logins/{id}/delete'     => [AdminSchoolLoginsController::class, 'destroy'],
-    'POST /admin/school-logins/{id}/reset'      => [AdminSchoolLoginsController::class, 'resetPassword'],
+    'POST /admin/school-logins/{id}/reset'              => [AdminSchoolLoginsController::class, 'resetPassword'],
+    'POST /admin/school-logins/{id}/send-credentials'   => [AdminSchoolLoginsController::class, 'sendCredentials'],
+
+    // ===== Admin :: Email Templates =====
+    'GET /admin/email-templates'                => [AdminEmailTemplatesController::class, 'index'],
+    'GET /admin/email-templates/{key}/edit'     => [AdminEmailTemplatesController::class, 'edit'],
+    'POST /admin/email-templates/{key}'         => [AdminEmailTemplatesController::class, 'update'],
 
     // ===== Admin :: Rounds =====
     'GET /admin/rounds'              => [AdminRoundsController::class, 'index'],
