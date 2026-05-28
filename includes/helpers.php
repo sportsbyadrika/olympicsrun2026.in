@@ -183,8 +183,9 @@ function nav_for_role(string $role): array
         ],
         Auth::ROLE_PANELIST => [
             ['label' => 'Dashboard',    'url' => '/panelist/dashboard'],
-            ['label' => 'My Questions', 'url' => '/panelist/questions'],
-            ['label' => 'New Question', 'url' => '/panelist/questions/new'],
+            ['label' => 'Review Queue', 'url' => '/panelist/review'],
+            ['label' => 'Master Bank',  'url' => '/panelist/master'],
+            ['label' => 'Slot Builder', 'url' => '/panelist/slots'],
         ],
         Auth::ROLE_SCHOOL => [
             ['label' => 'Dashboard', 'url' => '/school/dashboard'],

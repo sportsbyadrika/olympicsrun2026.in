@@ -29,6 +29,21 @@ $routes = [
     'GET /panelist/dashboard'    => [PanelistController::class, 'dashboard'],
     'GET /school/dashboard'      => [SchoolController::class, 'dashboard'],
 
+    // ===== Panelist :: Review queue =====
+    'GET /panelist/review'                       => [PanelistReviewController::class, 'index'],
+    'POST /panelist/review/approve-bulk'         => [PanelistReviewController::class, 'approveBulk'],
+    'POST /panelist/review/{id}/approve'         => [PanelistReviewController::class, 'approve'],
+    'POST /panelist/review/{id}/reject'          => [PanelistReviewController::class, 'reject'],
+    'POST /panelist/review/{id}/revise'          => [PanelistReviewController::class, 'revise'],
+
+    // ===== Panelist :: Master bank =====
+    'GET /panelist/master'                       => [PanelistMasterController::class, 'index'],
+    'GET /panelist/master/new'                   => [PanelistMasterController::class, 'create'],
+    'POST /panelist/master'                      => [PanelistMasterController::class, 'store'],
+    'GET /panelist/master/{id}/edit'             => [PanelistMasterController::class, 'edit'],
+    'POST /panelist/master/{id}'                 => [PanelistMasterController::class, 'update'],
+    'POST /panelist/master/{id}/delete'          => [PanelistMasterController::class, 'destroy'],
+
     // ===== Association :: Questions =====
     'GET /association/questions'              => [AssociationQuestionsController::class, 'index'],
     'GET /association/questions/new'          => [AssociationQuestionsController::class, 'create'],

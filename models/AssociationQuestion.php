@@ -138,6 +138,49 @@ final class AssociationQuestion
         );
     }
 
+    /** Pending review queue for the panel of an association. */
+    public static function pendingForAssociation(int $associationId): array
+    {
+        return Database::fetchAll(
+            "SELECT qb.*, au.full_name AS author_name
+               FROM association_question_bank qb
+          LEFT JOIN association_users au
+                 ON au.association_user_id = qb.created_by_assoc_user_id
+              WHERE qb.association_id = ?
+                AND qb.status = 'pending'
+              ORDER BY qb.submitted_at ASC, qb.question_id ASC",
+            [$associationId]
+        );
+    }
+
+    public static function reject(int $id, int $panelistId, string $reason): void
+    {
+        Database::execute(
+            "UPDATE association_question_bank
+                SET status = 'rejected',
+                    reviewed_by_panelist_id = ?,
+                    reviewed_at = NOW(),
+                    reject_reason = ?
+              WHERE question_id = ?
+                AND status = 'pending'",
+            [$panelistId, $reason, $id]
+        );
+    }
+
+    public static function sendForRevision(int $id, int $panelistId, string $reason): void
+    {
+        Database::execute(
+            "UPDATE association_question_bank
+                SET status = 'needs_revision',
+                    reviewed_by_panelist_id = ?,
+                    reviewed_at = NOW(),
+                    reject_reason = ?
+              WHERE question_id = ?
+                AND status = 'pending'",
+            [$panelistId, $reason, $id]
+        );
+    }
+
     public static function countsByStatus(int $associationId): array
     {
         $rows = Database::fetchAll(
