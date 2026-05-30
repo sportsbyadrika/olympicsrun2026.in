@@ -45,4 +45,62 @@ final class Settings
         );
         if (self::$cache !== null) self::$cache[$key] = $value;
     }
+
+    /**
+     * Every settings row with its metadata (type, description), in a stable
+     * order. Used by the admin Settings editor.
+     * @return array<int,array<string,mixed>>
+     */
+    public static function allWithMeta(): array
+    {
+        return Database::fetchAll(
+            'SELECT setting_key, setting_value, value_type, description, updated_at
+               FROM settings
+              ORDER BY setting_key'
+        );
+    }
+
+    /**
+     * Persist a batch of key => value pairs. Only keys that already exist in
+     * the table are written (whitelist by existing rows). Returns the number
+     * of rows updated.
+     */
+    public static function setMany(array $values, ?int $byAdminId = null): int
+    {
+        $existing = [];
+        foreach (self::allWithMeta() as $row) {
+            $existing[$row['setting_key']] = $row['value_type'];
+        }
+
+        $count = 0;
+        foreach ($values as $key => $value) {
+            if (!array_key_exists($key, $existing)) continue;
+
+            // Normalise per declared type so stored values stay consistent.
+            $clean = match ($existing[$key]) {
+                'bool'     => self::truthy($value) ? 'true' : 'false',
+                'int'      => (string)(int)$value,
+                'float'    => (string)(float)$value,
+                'datetime' => self::normaliseDatetime((string)$value),
+                default    => trim((string)$value),
+            };
+
+            self::set($key, $clean, $byAdminId);
+            $count++;
+        }
+        return $count;
+    }
+
+    private static function truthy(mixed $v): bool
+    {
+        return in_array(strtolower((string)$v), ['1', 'true', 'yes', 'on'], true);
+    }
+
+    private static function normaliseDatetime(string $v): string
+    {
+        $v = trim($v);
+        if ($v === '') return '';
+        $ts = strtotime($v);
+        return $ts === false ? $v : date('Y-m-d H:i:s', $ts);
+    }
 }
