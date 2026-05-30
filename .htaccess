@@ -12,6 +12,11 @@
 
 Options -Indexes
 
+# App base URL. NOTE: under PHP-FPM/CGI on many shared hosts SetEnv does NOT
+# reach PHP's getenv(); if so, set this in config/config.local.php instead.
+# Must be the domain ROOT — do NOT append /public/.
+SetEnv APP_BASE_URL "https://olympics.sportsbya.com"
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
