@@ -138,6 +138,16 @@ $routes = [
     'GET /admin/email-templates/{key}/edit'     => [AdminEmailTemplatesController::class, 'edit'],
     'POST /admin/email-templates/{key}'         => [AdminEmailTemplatesController::class, 'update'],
 
+    // ===== Admin :: Questions (read-only master pool) =====
+    'GET /admin/questions'                      => [AdminQuestionsController::class, 'index'],
+
+    // ===== Admin :: Settings =====
+    'GET /admin/settings'                       => [AdminSettingsController::class, 'index'],
+    'POST /admin/settings'                      => [AdminSettingsController::class, 'update'],
+
+    // ===== Admin :: Reports =====
+    'GET /admin/reports'                        => [AdminReportsController::class, 'index'],
+
     // ===== Admin :: Rounds =====
     'GET /admin/rounds'              => [AdminRoundsController::class, 'index'],
     'GET /admin/rounds/new'          => [AdminRoundsController::class, 'create'],

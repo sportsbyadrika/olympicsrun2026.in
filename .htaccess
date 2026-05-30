@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------------
+# Top-level .htaccess for SHARED HOSTING where the whole project lives inside
+# public_html and the document root CANNOT be changed to the public/ folder.
+#
+# It forwards every request into public/ (which has its own front-controller
+# .htaccess), and blocks direct web access to the application folders that are
+# meant to live outside the web root.
+#
+# If your host lets you set the document root, point it at the public/ folder
+# instead and you don't need this file.
+# ---------------------------------------------------------------------------
+
+Options -Indexes
+
+# App base URL. NOTE: under PHP-FPM/CGI on many shared hosts SetEnv does NOT
+# reach PHP's getenv(); if so, set this in config/config.local.php instead.
+# Must be the domain ROOT — do NOT append /public/.
+SetEnv APP_BASE_URL "https://olympics.sportsbya.com"
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct access to sensitive directories and dotfiles.
+    RewriteRule ^(config|includes|controllers|models|views|database|logs|bin)(/|$) - [F,L]
+    RewriteRule (^|/)\.(?!well-known) - [F,L]
+    RewriteRule (^|/)(composer\.(json|lock)|README\.md|PROJECT_SPEC\.md|SECURITY_AUDIT\.md)$ - [F,L]
+
+    # Don't re-forward requests that are already inside public/.
+    RewriteCond %{REQUEST_URI} !^/public/
+    # Send everything else into the public/ folder. The original REQUEST_URI is
+    # preserved, so the front controller still sees /login, /admin/..., etc.
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
