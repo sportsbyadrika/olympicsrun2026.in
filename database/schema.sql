@@ -741,6 +741,8 @@ VALUES
     ('quiz_duration_minutes',   '15',   'int',   'Per-team countdown timer.',           1),
     ('questions_per_quiz',      '30',   'int',   'Questions delivered per attempt.',    1),
     ('slot_grace_minutes',      '5',    'int',   'Latest start within a slot.',         1),
+    -- Schools & Teams
+    ('max_teams_per_school',    '1',    'int',   'Maximum team logins an admin can create per school.', 1),
     -- Scoring (used as fallback if rounds.* not set)
     ('marks_correct_default',   '1.00', 'float', 'Default marks per correct answer.',   1),
     ('marks_wrong_default',     '0.00', 'float', 'Default negative marks per wrong.',   1),

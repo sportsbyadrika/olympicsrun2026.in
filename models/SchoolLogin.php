@@ -124,4 +124,12 @@ final class SchoolLogin
     {
         return (int)Database::fetch('SELECT COUNT(*) AS c FROM school_logins')['c'];
     }
+
+    public static function countForSchool(int $schoolId): int
+    {
+        return (int)Database::fetch(
+            'SELECT COUNT(*) AS c FROM school_logins WHERE school_id = ?',
+            [$schoolId]
+        )['c'];
+    }
 }

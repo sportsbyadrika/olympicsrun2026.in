@@ -107,6 +107,13 @@ $routes = [
     'POST /admin/schools/{id}'        => [AdminSchoolsController::class, 'update'],
     'POST /admin/schools/{id}/delete' => [AdminSchoolsController::class, 'destroy'],
 
+    // Combined school + team-login management (modal-driven)
+    'GET /admin/schools/{id}'                          => [AdminSchoolsController::class, 'show'],
+    'POST /admin/schools/{id}/logins'                  => [AdminSchoolsController::class, 'storeLogin'],
+    'POST /admin/schools/{sid}/logins/{id}/reset'      => [AdminSchoolsController::class, 'resetLogin'],
+    'POST /admin/schools/{sid}/logins/{id}/delete'     => [AdminSchoolsController::class, 'destroyLogin'],
+    'POST /admin/schools/{sid}/logins/{id}'            => [AdminSchoolsController::class, 'updateLogin'],
+
     // ===== Admin :: Association Users =====
     'GET /admin/association-users'              => [AdminAssociationUsersController::class, 'index'],
     'GET /admin/association-users/new'          => [AdminAssociationUsersController::class, 'create'],
