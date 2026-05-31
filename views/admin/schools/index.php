@@ -13,38 +13,42 @@
                 <tr>
                     <th>School</th>
                     <th class="d-none d-md-table-cell">Code</th>
-                    <th class="d-none d-lg-table-cell">Association</th>
+                    <th class="d-none d-md-table-cell">Association</th>
                     <th class="d-none d-lg-table-cell">Region</th>
+                    <th class="text-center">Teams</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($schools)): ?>
-                    <tr><td colspan="6" class="text-center text-muted py-4">No schools yet.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">No schools yet.</td></tr>
                 <?php else: foreach ($schools as $s): ?>
                     <tr>
                         <td>
-                            <div class="fw-semibold text-navy"><?= e($s['school_name']) ?></div>
+                            <a href="/admin/schools/<?= (int)$s['school_id'] ?>"
+                               class="fw-semibold text-navy text-decoration-none">
+                                <?= e($s['school_name']) ?>
+                            </a>
                             <div class="small text-muted d-md-none"><?= e($s['school_code'] ?? '') ?></div>
-                            <div class="small text-muted d-lg-none"><?= e($s['association_name']) ?></div>
                         </td>
-                        <td class="d-none d-md-table-cell"><code><?= e($s['school_code'] ?? '—') ?></code></td>
-                        <td class="d-none d-lg-table-cell"><?= e($s['association_name']) ?></td>
+                        <td class="d-none d-md-table-cell"><?= e($s['school_code'] ?? '—') ?></td>
+                        <td class="d-none d-md-table-cell"><?= e($s['association_name']) ?></td>
                         <td class="d-none d-lg-table-cell"><?= e($s['region'] ?? '—') ?></td>
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border"><?= (int)($s['team_count'] ?? 0) ?></span>
+                        </td>
                         <td><span class="<?= status_badge($s['status']) ?>"><?= e(status_label($s['status'])) ?></span></td>
                         <td class="text-end text-nowrap">
-                            <a href="/admin/school-logins/new?school_id=<?= (int)$s['school_id'] ?>&generate=1"
-                               class="btn btn-sm btn-outline-navy" title="Generate login">
-                                <i class="bi bi-key"></i>
-                            </a>
+                            <a href="/admin/schools/<?= (int)$s['school_id'] ?>"
+                               class="btn btn-sm btn-primary"><i class="bi bi-people me-1"></i>Manage</a>
                             <a href="/admin/schools/<?= (int)$s['school_id'] ?>/edit"
-                               class="btn btn-sm btn-outline-navy" title="Edit"><i class="bi bi-pencil"></i></a>
+                               class="btn btn-sm btn-outline-navy"><i class="bi bi-pencil"></i></a>
                             <form action="/admin/schools/<?= (int)$s['school_id'] ?>/delete"
                                   method="post" class="d-inline"
-                                  onsubmit="return confirm('Delete this school?');">
+                                  onsubmit="return confirm('Delete this school? Its team logins will also be removed.');">
                                 <?= csrf_field() ?>
-                                <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                                <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                             </form>
                         </td>
                     </tr>

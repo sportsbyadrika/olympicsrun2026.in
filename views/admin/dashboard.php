@@ -14,7 +14,7 @@
          'sub' => $stats['schools_approved'] . ' approved · ' . $stats['schools_pending'] . ' pending'],
         ['label' => 'Association Users', 'value' => $stats['association_users'], 'url' => '/admin/association-users', 'color' => 'text-accent'],
         ['label' => 'Expert Panelists',  'value' => $stats['panelists'],         'url' => '/admin/panelists',         'color' => 'text-accent'],
-        ['label' => 'School Logins',     'value' => $stats['school_logins'],     'url' => '/admin/school-logins',     'color' => 'text-navy'],
+        ['label' => 'Team Logins',       'value' => $stats['school_logins'],     'url' => '/admin/schools',           'color' => 'text-navy'],
     ];
     foreach ($cards as $c): ?>
         <div class="col-12 col-sm-6 col-lg-4">

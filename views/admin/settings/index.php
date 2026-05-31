@@ -5,6 +5,7 @@ $errors = pull_errors();
 // Friendly grouping by key prefix — purely presentational.
 $groupFor = static function (string $key): string {
     if (str_starts_with($key, 'mail_'))            return 'Email / SMTP';
+    if ($key === 'max_teams_per_school')           return 'Schools & Teams';
     if (str_starts_with($key, 'r1_')
         || str_starts_with($key, 'r2_')
         || str_starts_with($key, 'registration_')) return 'Rounds & Windows';

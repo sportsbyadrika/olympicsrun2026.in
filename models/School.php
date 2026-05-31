@@ -3,7 +3,9 @@ final class School
 {
     public static function all(?int $associationId = null): array
     {
-        $sql = 'SELECT s.*, a.name AS association_name
+        $sql = 'SELECT s.*, a.name AS association_name,
+                       (SELECT COUNT(*) FROM school_logins sl
+                         WHERE sl.school_id = s.school_id) AS team_count
                   FROM schools s
                   JOIN associations a ON a.association_id = s.association_id';
         $params = [];

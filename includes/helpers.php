@@ -163,7 +163,6 @@ function nav_for_role(string $role): array
             ['label' => 'Users', 'children' => [
                 ['label' => 'Association Users', 'url' => '/admin/association-users'],
                 ['label' => 'Expert Panelists',  'url' => '/admin/panelists'],
-                ['label' => 'School Logins',     'url' => '/admin/school-logins'],
             ]],
             ['label' => 'Quiz', 'children' => [
                 ['label' => 'Rounds', 'url' => '/admin/rounds'],
