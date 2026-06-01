@@ -1,11 +1,21 @@
 # Front-controller routing: send every request that isn't a real file
 # or directory through public/index.php.
 
+# Serve index.php for the bare site root. Stated explicitly because some
+# shared hosts don't apply a useful DirectoryIndex to this docroot, which
+# left "/" returning a server 404 even though the app was deployed fine.
+DirectoryIndex index.php
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
     # Block direct access to dotfiles
     RewriteRule "^\." - [F]
+
+    # Route the bare root to the front controller WITHOUT relying on
+    # DirectoryIndex. The rule below skips real directories (the docroot is a
+    # directory), so "/" would otherwise never reach index.php.
+    RewriteRule ^$ index.php [L]
 
     # If the request is not a real file or directory, route to index.php
     RewriteCond %{REQUEST_FILENAME} !-f
