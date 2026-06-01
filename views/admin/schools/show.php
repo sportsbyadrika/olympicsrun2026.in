@@ -367,7 +367,10 @@ function genPwd() {
     return s;
 }
 
-(function () {
+// Run after the page (and Bootstrap, which loads at the end of <body>) is
+// ready. Without this, the script executes mid-parse before `bootstrap` is
+// defined, throws, and never wires up the Edit modal / photo cropper.
+document.addEventListener('DOMContentLoaded', function () {
     var cropper = null, activeCtx = null;
     var cropModalEl = document.getElementById('cropModal');
     var cropModal   = new bootstrap.Modal(cropModalEl);
@@ -465,5 +468,5 @@ function genPwd() {
             new bootstrap.Modal(document.getElementById('editTeamModal')).show();
         });
     });
-})();
+});
 </script>
