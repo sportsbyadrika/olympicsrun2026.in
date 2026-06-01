@@ -3,30 +3,20 @@ deployment:
   tasks:
     # Resolve paths at deploy time instead of hard-coding a username.
     # cPanel runs these tasks AS the cPanel user, FROM the repository checkout,
-    # so $HOME and $PWD are reliable; the old hard-coded /home/shooting/... broke
-    # if the account name differed.
+    # so $HOME and $PWD are reliable; a hard-coded /home/<user>/... path breaks
+    # if the account name ever differs.
     - export DEPLOYPATH="$HOME/public_html/olympics.sportsbya.com"
     - export SRC="$PWD"
-    - /bin/mkdir -p "$DEPLOYPATH" "$DEPLOYPATH/public"
+    - /bin/mkdir -p "$DEPLOYPATH"
 
-    # Web-READABLE deploy marker written straight into the served docroot
-    # (docroot is DEPLOYPATH/public). If you can load /deploy-info.txt in a
-    # browser, deploy + docroot are both proven, and it prints the real paths.
-    - 'echo "deploy ran"             >  "$DEPLOYPATH/public/deploy-info.txt"'
-    - 'date                          >> "$DEPLOYPATH/public/deploy-info.txt"'
-    - 'echo "USER=$(whoami)"         >> "$DEPLOYPATH/public/deploy-info.txt"'
-    - 'echo "HOME=$HOME"             >> "$DEPLOYPATH/public/deploy-info.txt"'
-    - 'echo "PWD=$PWD"               >> "$DEPLOYPATH/public/deploy-info.txt"'
-    - 'echo "DEPLOYPATH=$DEPLOYPATH" >> "$DEPLOYPATH/public/deploy-info.txt"'
-    - 'echo "SRC_has_index=$(test -f "$SRC/public/index.php" && echo yes || echo no)" >> "$DEPLOYPATH/public/deploy-info.txt"'
+    # Private deploy marker (NOT under public/, so it is never web-accessible).
+    - 'date > "$DEPLOYPATH/.last_deploy.txt"'
+    - 'echo "USER=$(whoami) HOME=$HOME PWD=$PWD" >> "$DEPLOYPATH/.last_deploy.txt"'
+    - 'echo "SRC_has_index=$(test -f "$SRC/public/index.php" && echo yes || echo no)" >> "$DEPLOYPATH/.last_deploy.txt"'
 
     # Sync the repo into the deploy path. rsync preferred; cp fallback.
-    - rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='deploy-info.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
-
-    # Re-stamp the marker AFTER sync (rsync --delete could have removed it),
-    # and record the sync result.
-    - 'echo "post_sync_rc=$?"        >> "$DEPLOYPATH/public/deploy-info.txt"'
-    - /bin/cp -f "$SRC/public/ping.txt" "$DEPLOYPATH/public/ping.txt" 2>/dev/null || true
+    - rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
+    - 'echo "sync_done rc=$?" >> "$DEPLOYPATH/.last_deploy.txt"'
 
     # Writable runtime dirs.
     - /bin/mkdir -p "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads" "$DEPLOYPATH/uploads/participants"
