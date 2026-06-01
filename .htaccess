@@ -25,9 +25,8 @@ SetEnv APP_BASE_URL "https://olympics.sportsbya.com"
     RewriteRule (^|/)\.(?!well-known) - [F,L]
     RewriteRule (^|/)(composer\.(json|lock)|README\.md|PROJECT_SPEC\.md|SECURITY_AUDIT\.md)$ - [F,L]
 
-    # Don't re-forward requests that are already inside public/.
-    RewriteCond %{REQUEST_URI} !^/public/
-    # Send everything else into the public/ folder. The original REQUEST_URI is
-    # preserved, so the front controller still sees /login, /admin/..., etc.
-    RewriteRule ^(.*)$ public/$1 [L]
+    # Forward everything into public/. The negative lookahead matches against
+    # the (already-rewritten) path, so a second rewrite pass won't prepend
+    # public/ again — avoiding the public/public/... loop that 404s.
+    RewriteRule ^(?!public/)(.*)$ public/$1 [L]
 </IfModule>
