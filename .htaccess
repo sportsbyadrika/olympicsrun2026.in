@@ -1,13 +1,15 @@
 # ---------------------------------------------------------------------------
-# Top-level .htaccess.
+# Top-level .htaccess  (docroot-agnostic safety net)
 #
-# The document root for olympics.sportsbya.com is the public/ sub-folder, so
-# routing is handled entirely by public/.htaccess. This file therefore does
-# NOT forward requests into public/ — doing so caused rewrite loops.
+# The Document Root for olympics.sportsbya.com is normally the public/
+# sub-folder, in which case Apache never reads THIS file at all and
+# public/.htaccess does all the routing.
 #
-# It only hardens the parent directory (deny listing, block dotfiles). If you
-# are on a host where the document root CANNOT be set to public/, see
-# DEPLOY-fallback note in README and restore the forwarding rule.
+# But if the Document Root ever drifts to this parent folder (a fresh
+# subdomain, a cPanel reset, a mistaken setting), this file forwards every
+# request into public/ so the site still serves instead of 404-ing. It is
+# loop-safe: once a request is already inside public/, the first rule stops
+# rewriting.
 # ---------------------------------------------------------------------------
 
 Options -Indexes
@@ -15,8 +17,13 @@ Options -Indexes
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block direct web access to application source if this folder is ever
-    # served directly.
-    RewriteRule ^(config|includes|controllers|models|views|database|logs|bin)(/|$) - [F,L]
-    RewriteRule (^|/)\.(?!well-known) - [F,L]
+    # Already inside public/ — hand off to public/.htaccess, do not rewrite
+    # again (this short-circuit is what prevents the rewrite loop the old
+    # forwarding rule suffered from).
+    RewriteRule ^public/ - [L]
+
+    # Forward everything else into the public/ front controller. Because all
+    # requests are funnelled through public/, the sibling source folders
+    # (config/, includes/, models/, ...) are never served directly from here.
+    RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

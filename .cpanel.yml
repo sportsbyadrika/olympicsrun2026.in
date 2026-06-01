@@ -1,31 +1,45 @@
 ---
 deployment:
   tasks:
+    # The subdomain's Document Root is .../public. We deploy the whole repo
+    # into the PARENT folder so application code (config/, includes/, models/,
+    # storage/) lives safely ABOVE the web root, and public/ is what Apache
+    # serves.
     - export DEPLOYPATH="$HOME/public_html/olympics.sportsbya.com"
+    - export DOCROOT="$DEPLOYPATH/public"
 
-    # Locate the repository checkout robustly, then hard-stop if it's not valid
-    # so we never sync from an empty/wrong directory.
+    # cPanel runs deploy tasks from inside the repository checkout, so $PWD is
+    # the source. Abort the WHOLE deploy if it isn't a valid checkout — a
+    # failed deploy is far better than a half-populated web root that 404s.
     - export SRC="$PWD"
-    - test -f "$SRC/public/index.php" || export SRC="$HOME/repositories/olympicsrun2026.in"
     - test -f "$SRC/public/index.php"
 
-    - /bin/mkdir -p "$DEPLOYPATH"
+    - /bin/mkdir -p "$DOCROOT"
 
-    # Clean up VCS metadata a previous bad `cp` fallback copied into the docroot.
-    # Git objects are read-only, which is exactly what made that cp fail; rm -rf
-    # can still remove them (we own the parent dir).
-    - /bin/rm -rf "$DEPLOYPATH/.git"
+    # Strip any VCS metadata a previous deploy may have copied into the web
+    # tree (git objects are read-only, which broke the old cp-based deploy).
+    - /bin/rm -rf "$DEPLOYPATH/.git" "$DOCROOT/.git"
 
-    - 'date > "$DEPLOYPATH/.last_deploy.txt"'
-    - 'echo "USER=$(whoami) SRC=$SRC DEPLOYPATH=$DEPLOYPATH" >> "$DEPLOYPATH/.last_deploy.txt"'
+    # Copy the app. No rsync on this host and cp cannot exclude paths, so use a
+    # tar pipe: additive (never deletes the web root). Excludes are TOP-LEVEL
+    # anchored (./vendor, ./logs ...) so public/vendor front-end assets are
+    # preserved. Errors are NOT swallowed into a log — if tar fails, the cPanel
+    # deploy output shows it and the verification step below aborts the deploy.
+    - tar -C "$SRC" --exclude=./.git --exclude=./.cpanel.yml --exclude=./vendor --exclude=./logs --exclude=./uploads --exclude=./storage/sessions --exclude=./config/config.local.php -cf - . | tar -C "$DEPLOYPATH" -xf -
 
-    # Copy the app into the docroot. This host has no rsync, and `cp` cannot
-    # exclude paths (it choked on read-only .git objects), so use a tar pipe:
-    # universally available, honors excludes, additive (never deletes the
-    # docroot), and skips VCS/vendor/runtime/local-config.
-    - 'if command -v rsync >/dev/null 2>&1; then rsync -a --exclude=.git --exclude=.cpanel.yml --exclude=.last_deploy.txt --exclude=.deploy.log --exclude=config/config.local.php --exclude=logs/ --exclude=uploads/ --exclude=storage/sessions/ --exclude=vendor/ "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1; else tar -C "$SRC" --exclude=./.git --exclude=./.cpanel.yml --exclude=./vendor --exclude=./logs --exclude=./uploads --exclude=./storage/sessions --exclude=./config/config.local.php -cf - . | tar -C "$DEPLOYPATH" -xf - >> "$DEPLOYPATH/.deploy.log" 2>&1; fi'
-    - 'echo "sync_done rc=$?" >> "$DEPLOYPATH/.last_deploy.txt"'
+    # Hard verification: if the front controller and its .htaccess did not land
+    # in the docroot, FAIL the deploy loudly instead of leaving a broken site.
+    # This is the permanent cure for the "intermittent 404 after deploy".
+    - test -f "$DOCROOT/index.php"
+    - test -f "$DOCROOT/.htaccess"
 
-    # Writable runtime dirs (session store kept OUTSIDE public/, mode 700).
+    # Guarantee writable runtime dirs, kept OUT of the web root. The session
+    # store MUST exist and be writable or logins fail with "CSRF token
+    # mismatch" — so this runs on every deploy.
     - /bin/mkdir -p "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads" "$DEPLOYPATH/uploads/participants" "$DEPLOYPATH/storage/sessions"
     - /bin/chmod 700 "$DEPLOYPATH/storage/sessions"
+
+    # Deploy marker — `cat .last_deploy.txt` (File Manager / FTP) confirms a
+    # deploy actually ran and when.
+    - 'date "+deployed %Y-%m-%d %H:%M:%S UTC" > "$DEPLOYPATH/.last_deploy.txt"'
+    - 'echo "src=$SRC docroot=$DOCROOT user=$(whoami)" >> "$DEPLOYPATH/.last_deploy.txt"'
