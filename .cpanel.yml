@@ -3,29 +3,27 @@ deployment:
   tasks:
     - export DEPLOYPATH="$HOME/public_html/olympics.sportsbya.com"
 
-    # Locate the repository checkout robustly. cPanel normally runs tasks from
-    # the checkout ($PWD), but if that ever resolves elsewhere we fall back to
-    # the standard cPanel Git location. Each `export` only runs if the previous
-    # candidate lacked the app's entry point.
+    # Locate the repository checkout robustly, then hard-stop if it's not valid
+    # so we never sync from an empty/wrong directory.
     - export SRC="$PWD"
     - test -f "$SRC/public/index.php" || export SRC="$HOME/repositories/olympicsrun2026.in"
-    - test -f "$SRC/public/index.php" || export SRC="$HOME/repositories/olympicsrun2026.in.git"
-
-    # SAFETY GUARD: abort the whole deploy (non-zero exit) BEFORE any file sync
-    # if we still can't find a valid source. This prevents ever syncing from an
-    # empty/wrong directory — the previous `rsync --delete` could wipe the live
-    # docroot in that case.
     - test -f "$SRC/public/index.php"
 
     - /bin/mkdir -p "$DEPLOYPATH"
 
-    # Private deploy marker (NOT under public/, so it is never web-accessible).
-    - 'date > "$DEPLOYPATH/.last_deploy.txt"'
-    - 'echo "USER=$(whoami) HOME=$HOME PWD=$PWD SRC=$SRC DEPLOYPATH=$DEPLOYPATH" >> "$DEPLOYPATH/.last_deploy.txt"'
+    # Clean up VCS metadata a previous bad `cp` fallback copied into the docroot.
+    # Git objects are read-only, which is exactly what made that cp fail; rm -rf
+    # can still remove them (we own the parent dir).
+    - /bin/rm -rf "$DEPLOYPATH/.git"
 
-    # Sync the repo into the docroot. NOTE: no --delete — this is additive and
-    # can never empty the docroot. rsync preferred; cp fallback if rsync absent.
-    - rsync -a --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='storage/sessions/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
+    - 'date > "$DEPLOYPATH/.last_deploy.txt"'
+    - 'echo "USER=$(whoami) SRC=$SRC DEPLOYPATH=$DEPLOYPATH" >> "$DEPLOYPATH/.last_deploy.txt"'
+
+    # Copy the app into the docroot. This host has no rsync, and `cp` cannot
+    # exclude paths (it choked on read-only .git objects), so use a tar pipe:
+    # universally available, honors excludes, additive (never deletes the
+    # docroot), and skips VCS/vendor/runtime/local-config.
+    - 'if command -v rsync >/dev/null 2>&1; then rsync -a --exclude=.git --exclude=.cpanel.yml --exclude=.last_deploy.txt --exclude=.deploy.log --exclude=config/config.local.php --exclude=logs/ --exclude=uploads/ --exclude=storage/sessions/ --exclude=vendor/ "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1; else tar -C "$SRC" --exclude=./.git --exclude=./.cpanel.yml --exclude=./vendor --exclude=./logs --exclude=./uploads --exclude=./storage/sessions --exclude=./config/config.local.php -cf - . | tar -C "$DEPLOYPATH" -xf - >> "$DEPLOYPATH/.deploy.log" 2>&1; fi'
     - 'echo "sync_done rc=$?" >> "$DEPLOYPATH/.last_deploy.txt"'
 
     # Writable runtime dirs (session store kept OUTSIDE public/, mode 700).
