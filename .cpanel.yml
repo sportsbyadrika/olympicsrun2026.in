@@ -2,8 +2,12 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/shooting/public_html/olympics.sportsbya.com
+    - export SRC=/home/shooting/repositories/olympicsrun2026.in
     - /bin/mkdir -p "$DEPLOYPATH"
     - /bin/date > "$DEPLOYPATH/.last_deploy.txt"
-    - /usr/bin/rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='vendor/' "$PWD/" "$DEPLOYPATH/"
+    - echo "PWD=$PWD" >> "$DEPLOYPATH/.last_deploy.txt"
+    - echo "SRC_exists=$(test -d "$SRC" && echo yes || echo no)" >> "$DEPLOYPATH/.last_deploy.txt"
+    - echo "rsync_path=$(command -v rsync || echo NOT_FOUND)" >> "$DEPLOYPATH/.last_deploy.txt"
+    - rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
+    - echo "sync_done rc=$?" >> "$DEPLOYPATH/.last_deploy.txt"
     - /bin/mkdir -p "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads" "$DEPLOYPATH/uploads/participants"
-    - /bin/chmod -R 755 "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads"
