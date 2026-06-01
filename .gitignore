@@ -7,6 +7,9 @@ config/database.local.php
 # Runtime artefacts
 /uploads/*
 !/uploads/.gitkeep
+!/uploads/participants/
+/uploads/participants/*
+!/uploads/participants/.gitkeep
 /logs/*
 !/logs/.gitkeep
 

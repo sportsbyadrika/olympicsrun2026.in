@@ -6,9 +6,11 @@ final class AdminSchoolsController
     public function index(): void
     {
         Auth::requireRole(Auth::ROLE_ADMIN);
+        $nameFilter = trim((string)($_GET['q'] ?? ''));
         render('admin/schools/index', [
-            'title'   => 'Schools — Admin',
-            'schools' => School::all(),
+            'title'      => 'Schools — Admin',
+            'schools'    => School::all(null, $nameFilter !== '' ? $nameFilter : null),
+            'nameFilter' => $nameFilter,
         ]);
     }
 
@@ -20,6 +22,8 @@ final class AdminSchoolsController
             'school'       => null,
             'associations' => Association::active(),
             'statuses'     => self::STATUSES,
+            'schoolTypes'  => Lookup::schoolTypes(),
+            'syllabuses'   => Lookup::syllabuses(),
         ]);
     }
 
@@ -50,6 +54,8 @@ final class AdminSchoolsController
             'school'       => $school,
             'associations' => Association::all(),
             'statuses'     => self::STATUSES,
+            'schoolTypes'  => Lookup::schoolTypes(),
+            'syllabuses'   => Lookup::syllabuses(),
             'logins'       => SchoolLogin::all((int)$id),
         ]);
     }
@@ -97,12 +103,45 @@ final class AdminSchoolsController
         $school = School::find((int)$id);
         if (!$school) { http_response_code(404); render('errors/404'); return; }
 
+        $logins = SchoolLogin::all((int)$id);
+        $participants = [];
+        foreach ($logins as $l) {
+            $participants[(int)$l['school_login_id']] =
+                TeamParticipant::mapForLogin((int)$l['school_login_id']);
+        }
+
         render('admin/schools/show', [
-            'title'    => $school['school_name'] . ' — Manage',
-            'school'   => $school,
-            'logins'   => SchoolLogin::all((int)$id),
-            'maxTeams' => Settings::int('max_teams_per_school', 1),
+            'title'        => $school['school_name'] . ' — Manage',
+            'school'       => $school,
+            'logins'       => $logins,
+            'participants' => $participants,
+            'maxTeams'     => Settings::int('max_teams_per_school', 1),
+            'defaultTeam'  => $this->defaultTeamLabel($school, count($logins)),
         ]);
+    }
+
+    /** Serve a participant photo (auth-gated; files live outside web root). */
+    public function participantPhoto(string $participantId): void
+    {
+        Auth::requireRole(Auth::ROLE_ADMIN);
+        $p = TeamParticipant::find((int)$participantId);
+        if (!$p || empty($p['photo_path'])) { http_response_code(404); echo 'Not found'; return; }
+
+        $path = TeamParticipant::photoDir() . '/' . basename((string)$p['photo_path']);
+        if (!is_file($path)) { http_response_code(404); echo 'Not found'; return; }
+
+        header('Content-Type: image/jpeg');
+        header('Content-Length: ' . filesize($path));
+        header('Cache-Control: private, max-age=300');
+        readfile($path);
+    }
+
+    /** Default team label: "{school_code}-Team {n}". */
+    private function defaultTeamLabel(array $school, int $existingCount): string
+    {
+        $code = trim((string)($school['school_code'] ?? ''));
+        $code = $code !== '' ? $code : 'TEAM';
+        return $code . '-Team ' . ($existingCount + 1);
     }
 
     public function storeLogin(string $schoolId): void
@@ -126,8 +165,9 @@ final class AdminSchoolsController
             redirect('/admin/schools/' . $sid);
         }
 
-        SchoolLogin::create(['school_id' => $sid] + $_POST);
-        flash_set('success', 'Team login created.');
+        $loginId = SchoolLogin::create(['school_id' => $sid] + $_POST);
+        $this->saveParticipants($loginId);
+        flash_set('success', 'Team created.');
         redirect('/admin/schools/' . $sid);
     }
 
@@ -155,8 +195,27 @@ final class AdminSchoolsController
             ['school_id' => $sid] + $_POST,
             $needsPw ? (string)$_POST['password'] : null
         );
-        flash_set('success', 'Team login updated.');
+        $this->saveParticipants((int)$id);
+        flash_set('success', 'Team updated.');
         redirect('/admin/schools/' . $sid);
+    }
+
+    /**
+     * Persist the two participant rows from the submitted form. Expects
+     * $_POST['participants'][1|2] = ['name','standard','age','gender'] and
+     * $_POST['participant_photo'][1|2] = base64 data-URL (optional).
+     */
+    private function saveParticipants(int $loginId): void
+    {
+        $parts  = $_POST['participants'] ?? [];
+        $photos = $_POST['participant_photo'] ?? [];
+        if (!is_array($parts)) return;
+
+        foreach ([1, 2] as $slot) {
+            $data  = is_array($parts[$slot] ?? null) ? $parts[$slot] : [];
+            $photo = is_string($photos[$slot] ?? null) ? $photos[$slot] : null;
+            TeamParticipant::save($loginId, $slot, $data, $photo);
+        }
     }
 
     /** Reset the password and email it to the school's contact address. */
@@ -226,6 +285,8 @@ final class AdminSchoolsController
             ->required('school_name', 'School name')->max('school_name', 200)
             ->max('school_code', 50)
             ->unique('school_code', 'schools', 'school_code', $exceptId, 'school_id', 'School code')
+            ->integer('school_type_id', 'School type')
+            ->integer('syllabus_id', 'Syllabus')
             ->max('region', 100)
             ->max('principal_name', 150)
             ->max('coach_name', 150)

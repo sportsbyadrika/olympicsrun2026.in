@@ -107,6 +107,9 @@ $routes = [
     'POST /admin/schools/{id}'        => [AdminSchoolsController::class, 'update'],
     'POST /admin/schools/{id}/delete' => [AdminSchoolsController::class, 'destroy'],
 
+    // Participant passport photo (served from outside the web root)
+    'GET /admin/participants/{id}/photo'               => [AdminSchoolsController::class, 'participantPhoto'],
+
     // Combined school + team-login management (modal-driven)
     'GET /admin/schools/{id}'                          => [AdminSchoolsController::class, 'show'],
     'POST /admin/schools/{id}/logins'                  => [AdminSchoolsController::class, 'storeLogin'],

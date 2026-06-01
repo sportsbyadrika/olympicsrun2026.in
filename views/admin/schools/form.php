@@ -2,12 +2,16 @@
 /** @var ?array $school */
 /** @var array $associations */
 /** @var array $statuses */
+/** @var array $schoolTypes */
+/** @var array $syllabuses */
 /** @var array $logins */
-$old    = pull_old();
-$errors = pull_errors();
-$isEdit = !empty($school);
-$action = $isEdit ? '/admin/schools/' . (int)$school['school_id'] : '/admin/schools';
-$logins = $logins ?? [];
+$old         = pull_old();
+$errors      = pull_errors();
+$isEdit      = !empty($school);
+$action      = $isEdit ? '/admin/schools/' . (int)$school['school_id'] : '/admin/schools';
+$logins      = $logins ?? [];
+$schoolTypes = $schoolTypes ?? [];
+$syllabuses  = $syllabuses ?? [];
 ?>
 <div class="d-md-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 text-navy mb-0"><?= $isEdit ? 'Edit' : 'Add' ?> School</h1>
@@ -58,6 +62,30 @@ $logins = $logins ?? [];
                     <?= err($errors, 'school_code') ?>
                 </div>
                 <div class="col-12 col-md-6">
+                    <label class="form-label" for="school_type_id">School type</label>
+                    <select name="school_type_id" id="school_type_id" class="form-select">
+                        <option value="">— Select —</option>
+                        <?php $curType = field($old, $school, 'school_type_id');
+                        foreach ($schoolTypes as $t): ?>
+                            <option value="<?= (int)$t['id'] ?>" <?= (string)$curType === (string)$t['id'] ? 'selected' : '' ?>>
+                                <?= e($t['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label" for="syllabus_id">Syllabus</label>
+                    <select name="syllabus_id" id="syllabus_id" class="form-select">
+                        <option value="">— Select —</option>
+                        <?php $curSyl = field($old, $school, 'syllabus_id');
+                        foreach ($syllabuses as $sy): ?>
+                            <option value="<?= (int)$sy['id'] ?>" <?= (string)$curSyl === (string)$sy['id'] ? 'selected' : '' ?>>
+                                <?= e($sy['name']) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-12 col-md-6">
                     <label class="form-label" for="region">Region</label>
                     <input type="text" name="region" id="region" class="form-control"
                            value="<?= e(field($old, $school, 'region')) ?>" maxlength="100">
@@ -101,10 +129,10 @@ $logins = $logins ?? [];
     <div class="card panel border-0 shadow-sm mt-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h2 class="h5 text-navy mb-0">Team logins</h2>
-                <a href="/admin/school-logins/new?school_id=<?= (int)$school['school_id'] ?>&generate=1"
+                <h2 class="h5 text-navy mb-0">Teams and Logins</h2>
+                <a href="/admin/schools/<?= (int)$school['school_id'] ?>"
                    class="btn btn-sm btn-accent text-white">
-                    <i class="bi bi-key me-1"></i> Generate login
+                    <i class="bi bi-people me-1"></i> Manage teams
                 </a>
             </div>
             <div class="table-responsive">

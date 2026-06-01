@@ -32,8 +32,11 @@ DROP TABLE IF EXISTS slots;
 DROP TABLE IF EXISTS rounds;
 DROP TABLE IF EXISTS master_questions;
 DROP TABLE IF EXISTS association_question_bank;
+DROP TABLE IF EXISTS team_participants;
 DROP TABLE IF EXISTS school_logins;
 DROP TABLE IF EXISTS schools;
+DROP TABLE IF EXISTS school_types;
+DROP TABLE IF EXISTS syllabuses;
 DROP TABLE IF EXISTS expert_panelists;
 DROP TABLE IF EXISTS association_users;
 DROP TABLE IF EXISTS associations;
@@ -143,6 +146,25 @@ CREATE TABLE expert_panelists (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==========================================================================
+-- 4b. school_types / syllabuses  — admin-managed lookup lists for dropdowns
+-- ==========================================================================
+CREATE TABLE school_types (
+    school_type_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name           VARCHAR(80)  NOT NULL,
+    sort_order     INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (school_type_id),
+    UNIQUE KEY uniq_school_type_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE syllabuses (
+    syllabus_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name        VARCHAR(80)  NOT NULL,
+    sort_order  INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (syllabus_id),
+    UNIQUE KEY uniq_syllabus_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================================================
 -- 5. schools  — participating schools (registration → approval)
 -- ==========================================================================
 CREATE TABLE schools (
@@ -150,6 +172,8 @@ CREATE TABLE schools (
     association_id      INT UNSIGNED  NOT NULL,
     school_name         VARCHAR(200)  NOT NULL,
     school_code         VARCHAR(50)   NULL,
+    school_type_id      INT UNSIGNED  NULL,
+    syllabus_id         INT UNSIGNED  NULL,
     region              VARCHAR(100)  NULL,
     address             TEXT          NULL,
     principal_name      VARCHAR(150)  NULL,
@@ -168,9 +192,17 @@ CREATE TABLE schools (
     KEY idx_school_assoc (association_id),
     KEY idx_school_status (status),
     KEY idx_school_region (region),
+    KEY idx_school_type (school_type_id),
+    KEY idx_school_syllabus (syllabus_id),
     CONSTRAINT fk_school_assoc
         FOREIGN KEY (association_id) REFERENCES associations(association_id)
         ON DELETE CASCADE,
+    CONSTRAINT fk_school_type
+        FOREIGN KEY (school_type_id) REFERENCES school_types(school_type_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_school_syllabus
+        FOREIGN KEY (syllabus_id) REFERENCES syllabuses(syllabus_id)
+        ON DELETE SET NULL,
     CONSTRAINT fk_school_approver
         FOREIGN KEY (approved_by_user_id)
             REFERENCES association_users(association_user_id)
@@ -199,6 +231,28 @@ CREATE TABLE school_logins (
     KEY idx_sl_status (status),
     CONSTRAINT fk_sl_school
         FOREIGN KEY (school_id) REFERENCES schools(school_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ==========================================================================
+-- 6b. team_participants  — up to 2 participants per team login
+-- ==========================================================================
+CREATE TABLE team_participants (
+    participant_id    INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    school_login_id   INT UNSIGNED NOT NULL,
+    slot              TINYINT UNSIGNED NOT NULL,          -- 1 or 2
+    participant_name  VARCHAR(150) NOT NULL,
+    studying_standard VARCHAR(50)  NULL,
+    age               TINYINT UNSIGNED NULL,
+    gender            ENUM('male','female','other') NULL,
+    photo_path        VARCHAR(255) NULL,
+    created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                                            ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (participant_id),
+    UNIQUE KEY uniq_login_slot (school_login_id, slot),
+    CONSTRAINT fk_tp_login
+        FOREIGN KEY (school_login_id) REFERENCES school_logins(school_login_id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -600,21 +654,29 @@ VALUES
      '$2y$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
      'Coach S. Thomas', 'Aquatics & Swimming');
 
+-- Lookup lists for the school dropdowns
+INSERT INTO school_types (school_type_id, name, sort_order) VALUES
+    (1, 'Government', 1), (2, 'Aided', 2), (3, 'Private', 3);
+
+INSERT INTO syllabuses (syllabus_id, name, sort_order) VALUES
+    (1, 'State', 1), (2, 'CBSE', 2), (3, 'ISC', 3);
+
 -- 3 schools
 INSERT INTO schools (school_id, association_id, school_name, school_code,
+                     school_type_id, syllabus_id,
                      region, principal_name, coach_name,
                      contact_email, contact_phone, status,
                      approved_by_user_id, approved_at)
 VALUES
-    (1, 1, 'St. Joseph''s Higher Secondary School', 'SJHSS-TVM',
+    (1, 1, 'St. Joseph''s Higher Secondary School', 'SJHSS-TVM', 2, 1,
      'Thiruvananthapuram', 'Sr. M. Joseph', 'A. Pillai',
      'admin@sjhss.example', '+91-9000000001', 'approved',
      1, NOW()),
-    (2, 1, 'Govt. Model School Kochi', 'GMS-KOC',
+    (2, 1, 'Govt. Model School Kochi', 'GMS-KOC', 1, 1,
      'Ernakulam', 'Mr. T. Varghese', 'B. Kurian',
      'admin@gmskoc.example', '+91-9000000002', 'approved',
      1, NOW()),
-    (3, 1, 'Holy Family Convent School', 'HFCS-CLT',
+    (3, 1, 'Holy Family Convent School', 'HFCS-CLT', 3, 2,
      'Kozhikode', 'Sr. C. Maria', 'D. Mohan',
      'admin@hfcs.example', '+91-9000000003', 'approved',
      1, NOW());
