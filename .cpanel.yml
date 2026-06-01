@@ -1,21 +1,31 @@
 ---
 deployment:
   tasks:
-    # Resolve paths at deploy time instead of hard-coding a username.
-    # cPanel runs these tasks AS the cPanel user, FROM the repository checkout,
-    # so $HOME and $PWD are reliable; a hard-coded /home/<user>/... path breaks
-    # if the account name ever differs.
     - export DEPLOYPATH="$HOME/public_html/olympics.sportsbya.com"
+
+    # Locate the repository checkout robustly. cPanel normally runs tasks from
+    # the checkout ($PWD), but if that ever resolves elsewhere we fall back to
+    # the standard cPanel Git location. Each `export` only runs if the previous
+    # candidate lacked the app's entry point.
     - export SRC="$PWD"
+    - test -f "$SRC/public/index.php" || export SRC="$HOME/repositories/olympicsrun2026.in"
+    - test -f "$SRC/public/index.php" || export SRC="$HOME/repositories/olympicsrun2026.in.git"
+
+    # SAFETY GUARD: abort the whole deploy (non-zero exit) BEFORE any file sync
+    # if we still can't find a valid source. This prevents ever syncing from an
+    # empty/wrong directory — the previous `rsync --delete` could wipe the live
+    # docroot in that case.
+    - test -f "$SRC/public/index.php"
+
     - /bin/mkdir -p "$DEPLOYPATH"
 
     # Private deploy marker (NOT under public/, so it is never web-accessible).
     - 'date > "$DEPLOYPATH/.last_deploy.txt"'
-    - 'echo "USER=$(whoami) HOME=$HOME PWD=$PWD" >> "$DEPLOYPATH/.last_deploy.txt"'
-    - 'echo "SRC_has_index=$(test -f "$SRC/public/index.php" && echo yes || echo no)" >> "$DEPLOYPATH/.last_deploy.txt"'
+    - 'echo "USER=$(whoami) HOME=$HOME PWD=$PWD SRC=$SRC DEPLOYPATH=$DEPLOYPATH" >> "$DEPLOYPATH/.last_deploy.txt"'
 
-    # Sync the repo into the deploy path. rsync preferred; cp fallback.
-    - rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='storage/sessions/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
+    # Sync the repo into the docroot. NOTE: no --delete — this is additive and
+    # can never empty the docroot. rsync preferred; cp fallback if rsync absent.
+    - rsync -a --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='storage/sessions/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
     - 'echo "sync_done rc=$?" >> "$DEPLOYPATH/.last_deploy.txt"'
 
     # Writable runtime dirs (session store kept OUTSIDE public/, mode 700).
