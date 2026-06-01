@@ -24,6 +24,12 @@ $config = [
     'session' => [
         'name'            => 'olyrun2026',
         'lifetime'        => 7200,
+        // App-local session store. Relying on the host's default
+        // session.save_path is fragile on shared hosting (often unwritable or
+        // shared between accounts), which drops session data between requests
+        // and surfaces as a "CSRF token mismatch" on the first POST. Keep it
+        // out of the web root. Override with SESSION_SAVE_PATH if needed.
+        'save_path'       => getenv('SESSION_SAVE_PATH') ?: (__DIR__ . '/../storage/sessions'),
         'cookie_secure'   => filter_var(getenv('SESSION_SECURE') ?: '0', FILTER_VALIDATE_BOOLEAN),
         'cookie_httponly' => true,
         'cookie_samesite' => 'Lax',

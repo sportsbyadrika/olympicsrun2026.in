@@ -15,8 +15,9 @@ deployment:
     - 'echo "SRC_has_index=$(test -f "$SRC/public/index.php" && echo yes || echo no)" >> "$DEPLOYPATH/.last_deploy.txt"'
 
     # Sync the repo into the deploy path. rsync preferred; cp fallback.
-    - rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
+    - rsync -a --delete --exclude='.git' --exclude='.cpanel.yml' --exclude='.last_deploy.txt' --exclude='.deploy.log' --exclude='config/config.local.php' --exclude='logs/' --exclude='uploads/' --exclude='storage/sessions/' --exclude='vendor/' "$SRC/" "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1 || cp -a "$SRC/." "$DEPLOYPATH/" >> "$DEPLOYPATH/.deploy.log" 2>&1
     - 'echo "sync_done rc=$?" >> "$DEPLOYPATH/.last_deploy.txt"'
 
-    # Writable runtime dirs.
-    - /bin/mkdir -p "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads" "$DEPLOYPATH/uploads/participants"
+    # Writable runtime dirs (session store kept OUTSIDE public/, mode 700).
+    - /bin/mkdir -p "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads" "$DEPLOYPATH/uploads/participants" "$DEPLOYPATH/storage/sessions"
+    - /bin/chmod 700 "$DEPLOYPATH/storage/sessions"

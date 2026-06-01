@@ -13,6 +13,10 @@ config/database.local.php
 /logs/*
 !/logs/.gitkeep
 
+# Session files (app-local session store) — keep the dir, ignore its contents
+/storage/sessions/*
+!/storage/sessions/.gitignore
+
 # Editor / OS
 .vscode/
 .idea/

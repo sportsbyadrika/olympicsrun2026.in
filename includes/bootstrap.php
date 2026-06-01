@@ -64,6 +64,22 @@ if (PHP_SAPI !== 'cli' && !headers_sent()) {
 // Skipped in CLI: cron scripts (e.g. force-submit-expired) have no user
 // session and writing a session cookie under SAPI=cli is noisy and pointless.
 if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
+    // Use an app-local, writable session store rather than the host default,
+    // which on shared hosting is frequently unwritable/shared and silently
+    // drops session data — the usual cause of "CSRF token mismatch" on login.
+    $sessionPath = $cfg['session']['save_path'] ?? '';
+    if ($sessionPath !== '') {
+        if (!is_dir($sessionPath)) {
+            @mkdir($sessionPath, 0700, true);
+        }
+        if (is_dir($sessionPath) && is_writable($sessionPath)) {
+            session_save_path($sessionPath);
+            ini_set('session.gc_maxlifetime', (string)$cfg['session']['lifetime']);
+        } else {
+            error_log('Session save_path not writable: ' . $sessionPath);
+        }
+    }
+
     session_name($cfg['session']['name']);
     session_set_cookie_params([
         'lifetime' => $cfg['session']['lifetime'],
