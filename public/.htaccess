@@ -1,27 +1,29 @@
-# Front-controller routing: send every request that isn't a real file
-# or directory through public/index.php.
+# Front-controller routing for the Olympics Run app.
+# Goal: work identically on Apache and LiteSpeed/cPanel shared hosting,
+# without depending on the host's DirectoryIndex configuration.
 
-# Serve index.php for the bare site root. Stated explicitly because some
-# shared hosts don't apply a useful DirectoryIndex to this docroot, which
-# left "/" returning a server 404 even though the app was deployed fine.
 DirectoryIndex index.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    RewriteBase /
 
-    # Block direct access to dotfiles
-    RewriteRule "^\." - [F]
+    # Block direct web access to dotfiles (.git, .env, .htaccess, ...).
+    RewriteRule "(^|/)\.(?!well-known)" - [F]
 
-    # Route the bare root to the front controller WITHOUT relying on
-    # DirectoryIndex. The rule below skips real directories (the docroot is a
-    # directory), so "/" would otherwise never reach index.php.
+    # Site root -> front controller, stated explicitly so "/" works even when
+    # the host does not apply a useful DirectoryIndex to this docroot. (This
+    # was the cause of the homepage-only 404.)
     RewriteRule ^$ index.php [L]
 
-    # If the request is not a real file or directory, route to index.php
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
+    # Let real files and directories (css/js/img/vendor) be served as-is.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Everything else -> front controller.
     RewriteRule ^ index.php [L]
 </IfModule>
 
-# Sensible defaults
+# Never expose a directory listing.
 Options -Indexes
