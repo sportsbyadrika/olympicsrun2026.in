@@ -67,17 +67,26 @@ if (PHP_SAPI !== 'cli' && session_status() === PHP_SESSION_NONE) {
     // Use an app-local, writable session store rather than the host default,
     // which on shared hosting is frequently unwritable/shared and silently
     // drops session data — the usual cause of "CSRF token mismatch" on login.
-    $sessionPath = $cfg['session']['save_path'] ?? '';
-    if ($sessionPath !== '') {
-        if (!is_dir($sessionPath)) {
-            @mkdir($sessionPath, 0700, true);
+    // Pick the first writable private store. NEVER fall back to the host's
+    // default session.save_path — on shared hosting it is frequently
+    // unwritable or shared between accounts, which silently drops the session
+    // between the login form (GET) and its submit (POST) and surfaces as
+    // "CSRF token mismatch". A namespaced dir under the system temp dir is the
+    // last resort, still private to this app.
+    $candidates = array_values(array_filter([
+        $cfg['session']['save_path'] ?? '',
+        sys_get_temp_dir() . '/olyrun2026_sessions',
+    ]));
+    foreach ($candidates as $dir) {
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0700, true);
         }
-        if (is_dir($sessionPath) && is_writable($sessionPath)) {
-            session_save_path($sessionPath);
+        if (is_dir($dir) && is_writable($dir)) {
+            session_save_path($dir);
             ini_set('session.gc_maxlifetime', (string)$cfg['session']['lifetime']);
-        } else {
-            error_log('Session save_path not writable: ' . $sessionPath);
+            break;
         }
+        error_log('Session save_path not writable, trying next: ' . $dir);
     }
 
     session_name($cfg['session']['name']);
