@@ -1,32 +1,22 @@
 # ---------------------------------------------------------------------------
-# Top-level .htaccess for SHARED HOSTING where the whole project lives inside
-# public_html and the document root CANNOT be changed to the public/ folder.
+# Top-level .htaccess.
 #
-# It forwards every request into public/ (which has its own front-controller
-# .htaccess), and blocks direct web access to the application folders that are
-# meant to live outside the web root.
+# The document root for olympics.sportsbya.com is the public/ sub-folder, so
+# routing is handled entirely by public/.htaccess. This file therefore does
+# NOT forward requests into public/ — doing so caused rewrite loops.
 #
-# If your host lets you set the document root, point it at the public/ folder
-# instead and you don't need this file.
+# It only hardens the parent directory (deny listing, block dotfiles). If you
+# are on a host where the document root CANNOT be set to public/, see
+# DEPLOY-fallback note in README and restore the forwarding rule.
 # ---------------------------------------------------------------------------
 
 Options -Indexes
 
-# App base URL. NOTE: under PHP-FPM/CGI on many shared hosts SetEnv does NOT
-# reach PHP's getenv(); if so, set this in config/config.local.php instead.
-# Must be the domain ROOT — do NOT append /public/.
-SetEnv APP_BASE_URL "https://olympics.sportsbya.com"
-
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Block direct access to sensitive directories and dotfiles.
+    # Block direct web access to application source if this folder is ever
+    # served directly.
     RewriteRule ^(config|includes|controllers|models|views|database|logs|bin)(/|$) - [F,L]
     RewriteRule (^|/)\.(?!well-known) - [F,L]
-    RewriteRule (^|/)(composer\.(json|lock)|README\.md|PROJECT_SPEC\.md|SECURITY_AUDIT\.md)$ - [F,L]
-
-    # Forward everything into public/. The negative lookahead matches against
-    # the (already-rewritten) path, so a second rewrite pass won't prepend
-    # public/ again — avoiding the public/public/... loop that 404s.
-    RewriteRule ^(?!public/)(.*)$ public/$1 [L]
 </IfModule>
