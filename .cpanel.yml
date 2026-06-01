@@ -1,0 +1,23 @@
+---
+deployment:
+  tasks:
+    # cPanel clones/pulls this repo into ~/repositories/olympicsrun2026.in,
+    # then runs the tasks below from inside that clone. We rsync the working
+    # tree into the live document-root parent, preserving runtime data and
+    # never overwriting the server-only secrets file.
+    #
+    # Live folder (subdomain root). The web server's document root is the
+    # public/ folder inside it.
+    - export DEPLOYPATH=/home/shooting/public_html/olympics.sportsbya.com
+    - /bin/mkdir -p "$DEPLOYPATH"
+    - >-
+      /usr/bin/rsync -a --delete
+      --exclude='.git'
+      --exclude='.cpanel.yml'
+      --exclude='config/config.local.php'
+      --exclude='logs/'
+      --exclude='uploads/'
+      --exclude='vendor/'
+      ./ "$DEPLOYPATH/"
+    - /bin/mkdir -p "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads"
+    - /bin/chmod -R 755 "$DEPLOYPATH/logs" "$DEPLOYPATH/uploads"
