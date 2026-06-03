@@ -18,7 +18,20 @@ if (PHP_SAPI === 'cli-server') {
 
 require __DIR__ . '/../includes/bootstrap.php';
 
-$reqPath = strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/';
+// Resolve the request path in a way that survives shared-hosting quirks.
+// Different hosts hand PHP the path differently: some serve the front
+// controller via DirectoryIndex and report REQUEST_URI as "/index.php", some
+// prefix the script name, some leave a trailing slash. Normalize all of that
+// to a clean route key ("/", "/login", "/admin/dashboard", ...) so routing
+// never depends on how the web server happens to present the request.
+$reqPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+if (!is_string($reqPath) || $reqPath === '') {
+    $reqPath = '/';
+}
+// Strip a leading "/index.php" (front controller hit directly, or surfaced by
+// DirectoryIndex): "/index.php" -> "/", "/index.php/login" -> "/login".
+$reqPath = preg_replace('#^/index\.php(?=/|$)#', '', $reqPath);
+$reqPath = '/' . ltrim((string)$reqPath, '/');
 $reqPath = rtrim($reqPath, '/') ?: '/';
 $method  = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
